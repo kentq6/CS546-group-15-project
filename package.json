@@ -1,0 +1,19 @@
+{
+  "name": "group-15-project",
+  "version": "1.0.0",
+  "description": "CS 546 Group 15 Final Project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kentq6/CS546-group-15-project.git"
+  },
+  "author": "Kellen Abrams, Sofia Lyons, Kent Quach, Noah Yohannes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kentq6/CS546-group-15-project/issues"
+  },
+  "homepage": "https://github.com/kentq6/CS546-group-15-project#readme"
+}
