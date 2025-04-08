@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/kentq6/CS546-group-15-project/issues"
   },
-  "homepage": "https://github.com/kentq6/CS546-group-15-project#readme"
+  "homepage": "https://github.com/kentq6/CS546-group-15-project#readme",
+  "dependencies": {
+    "mongodb": "^6.15.0"
+  }
 }
