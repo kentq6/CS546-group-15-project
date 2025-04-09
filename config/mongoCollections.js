@@ -22,4 +22,4 @@ export const tasks = getCollectionFn('tasks');
 export const blueprints = getCollectionFn('blueprints');
 export const reports = getCollectionFn('reports');
 export const issues = getCollectionFn('issues');
-export const comments = getCollectionFn('comments');
+export const companies = getCollectionFn('companies');

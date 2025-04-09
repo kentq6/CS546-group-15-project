@@ -3,7 +3,7 @@ import moment from 'moment';
 import { ObjectId } from 'mongodb';
 
 const exportedMethods = {
-  // INPUT VALIDATION: Valid String
+  // Valid String
   isValidString(strVal, varName) {
     if (!strVal) throw `Error: You must supply a ${varName}!`;
     if (typeof strVal !== 'string') throw `Error: ${varName} must be a string!`;
@@ -13,7 +13,15 @@ const exportedMethods = {
 
     return strVal;
   },
-  // INPUT VALIDATION: Valid ID Format
+  // Valid Number
+  isValidNumber(numVal, varName) {
+    if (!numVal) throw `Error: You must supply a ${varName}!`
+    if (typeof numVal !== 'number') throw `Error: ${varName} must be a number!`;
+    if (numVal < 0) throw `Error: ${varName} cannot be negative!`;
+
+    return numVal;
+  },
+  // Valid ID Format
   isValidId(id, varName) {
     if (!id) throw `Error: You must provide a valid ${varName}!`;
     if (typeof id !== 'string') throw `Error: ${varName} must be a string!`;
@@ -25,7 +33,7 @@ const exportedMethods = {
 
     return id;
   },
-  // INPUT VALIDATION: Valid Date
+  // Valid Date
   isValidDate(date) {
     // checks if date is a valid string
     date = this.isValidString(date, 'date');
@@ -45,10 +53,10 @@ const exportedMethods = {
       throw 'Error: Date cannot exceed over 2 years of current year!';
     return date;
   },
-  // INPUT VALIDATION: Valid String Array
+  // Valid String Array
   isValidStringArray(arr) {
-    if (!Array.isArray(arr) || arr.length < 1)
-      throw `Error: '${arr || 'Provided input'}' is not a valid string array!`;
+    if (!Array.isArray(arr))
+      throw `Error: '${arr || 'Provided input'}' is not a string array!`;
 
     // checks if each elem. is a valid string
     arr.forEach((elem, index, array) => {
@@ -60,26 +68,52 @@ const exportedMethods = {
 
     return arr; 
   },
-  // INPUT VALIDATION: Valid Movie
+  // Valid Status
+  isValidStatus(status, def) {
+    status = this.isValidString(status, 'status');
+    if (!def.includes(status))
+      throw `Error: ${status || 'Provided Input'} is not a valid status!`;
+
+    return status;
+  },
+  // Valid Movie
   isValidUser(username, password, role, projects, companyId) {
-    // checks if all fields have valid values
+    // checks if all fields have values
     if (!username || !password || !role || !projects || !companyId)
       throw 'Error: all fields need to have values!';
 
-    // checks if username is a string
+    // validates each field accordingly
     username = this.isValidString(username, 'username');
-    // checks if password is a string
     password = this.isValidString(password, 'password');
-    // checks if role is a string
     role = this.isValidString(role, 'role');
-    // checks if projects is a string array of valid ObjectIDs
     projects = this.isValidStringArray(projects);
     projects.forEach(project => this.isValidId(project));
-    // checks if companyId is a valid ObjectID
     companyId = this.isValidString(companyId, 'companyId');
     companyId = this.isValidId(companyId);
 
-    return { username, password, role, projects, companyId };
+    return [username, password, role, projects, companyId];
+  },
+  isValidProject(title, description, budget, status, tasks, blueprints, reports, teamMembers, companyId) {
+    // checks if all fields have values
+    if (!title || !description || !budget || !tasks || !blueprints || !reports || !teamMembers || !companyId)
+      throw 'Error: all fields have to have values!';
+
+    // validates each field accordingly
+    title = this.isValidString(title);
+    description = this.isValidString(description);
+    budget = this.isValidNumber(budget);
+    status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
+    tasks = this.isValidStringArray(tasks);
+    tasks.forEach(task => this.isValidId(task));
+    blueprints = this.isValidStringArray(blueprints);
+    blueprints.forEach(blueprint => this.isValidId(blueprint));
+    reports = this.isValidStringArray(reports);
+    reports.forEach(report => this.isValidId(report));
+    teamMembers = this.isValidStringArray(teamMembers);
+    teamMembers.forEach(teamMember => this.isValidId(teamMember));
+    companyId = this.isValidId(companyId);
+
+    return [title, description, budget, tasks, blueprints, reports, teamMembers, companyId];
   },
 };
 
