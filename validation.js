@@ -1,5 +1,4 @@
 //You can add and export any helper functions you want here. If you aren't using any, then you can just leave this file as is.
-import moment from 'moment';
 import { ObjectId } from 'mongodb';
 
 const exportedMethods = {
@@ -33,31 +32,11 @@ const exportedMethods = {
 
     return id;
   },
-  // Valid Date
-  isValidDate(date) {
-    // checks if date is a valid string
-    date = this.isValidString(date, 'date');
-    // parse through date using moment ('true' param. for strict formatting)
-    const parsedDate = moment(date, 'MM/DD/YYYY', true);
-    // check if date exists (NOTE: .isValid() is a moment.js built-in function)
-    if (!parsedDate.isValid()) 
-      throw 'Error: Not a valid date!';
-    // set bounds of valid date
-    const lowerBound = moment('01/01/1900', 'MM/DD/YYYY');
-    const currentYear = new Date().getFullYear();
-    const upperBound = moment(`12/31/${currentYear + 2}`, 'MM/DD/YYYY');
-    // check if date is valid
-    if (parsedDate.isBefore(lowerBound))
-      throw 'Error: Date cannot be less than 01/01/1900!';
-    if (parsedDate.isAfter(upperBound))
-      throw 'Error: Date cannot exceed over 2 years of current year!';
-    return date;
-  },
   // Valid File Format
   isValidFileUrl(fileUrl, varName) {
-    // validates input as string
+    // validates input as a string
     fileUrl = this.isValidString(fileUrl, varName || 'fileUrl');
-    // define correct format of file Url
+    // defines correct format of file Url
     const validUrlRegex = /^.+\.(pdf|jpeg|png)$/i;
     // checks if URL is valid
     if (!validUrlRegex.test(fileUrl))
@@ -72,6 +51,18 @@ const exportedMethods = {
       throw `Error: ${status || 'Provided Input'} is not a valid status!`;
 
     return status;
+  },
+  // Valid Location Format
+  isValidLocation(location) {
+    // validates input as a string
+    location = this.isValidString(location, 'location');
+    // defines correct format of location
+    const locationRegex = /^[A-Za-z\s\-']+, [A-Za-z\s\-']+$/;
+    // checks if location is valid format
+    if (!locationRegex.test(location))
+      throw `Error: Location must be in the format 'City, State/Country'!`;
+  
+    return location;
   },
   // Valid Movie
   isValidUser(username, password, role, projects, companyId) {
@@ -88,9 +79,9 @@ const exportedMethods = {
 
     return { username, password, role, projects, companyId };
   },
-  isValidProject(title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId) {
+  isValidProject(title, description, budget, status, employees, tasks, blueprints, reports, companyId) {
     // checks if all fields have values
-    if (!title || !description || !budget || !status || !teamMembers || !tasks || !blueprints || !reports || !companyId)
+    if (!title || !description || !budget || !status || !employees || !tasks || !blueprints || !reports || !companyId)
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
@@ -98,13 +89,13 @@ const exportedMethods = {
     description = this.isValidString(description, 'description');
     budget = this.isValidNumber(budget, 'budget');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    teamMembers.forEach(userId => this.isValidId(userId, `${userId}`));
+    employees.forEach(userId => this.isValidId(userId, `${userId}`));
     tasks.forEach(taskId => this.isValidId(taskId, `${taskId}`));
     blueprints.forEach(blueprintId => this.isValidId(blueprintId, `${blueprintId}`));
     reports.forEach(reportId => this.isValidId(reportId, `${reportId}`));
     companyId = this.isValidId(companyId, 'companyId');
 
-    return { title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId };
+    return { title, description, budget, status, employees, tasks, blueprints, reports, companyId };
   },
   isValidTask(title, description, cost, status, assignedTo, projectId) {
     // checks if all fields have values
@@ -116,10 +107,10 @@ const exportedMethods = {
     description = this.isValidString(description, 'description');
     cost = this.isValidNumber(cost, 'cost');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    teamMembers.forEach(userId => this.isValidId(userId, `${userId}`));
+    employees.forEach(userId => this.isValidId(userId, `${userId}`));
     companyId = this.isValidId(companyId, 'companyId');
 
-    return { title, description, cost, tasks, blueprints, reports, teamMembers, companyId };
+    return { title, description, cost, tasks, blueprints, reports, employees, companyId };
   },
   isValidBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
     // checks if all fields have values
@@ -149,6 +140,21 @@ const exportedMethods = {
     projectId = this.isValidId(projectId, 'projectId');
 
     return { title, description, fileUrl, tags, uploadedBy, projectId };
+  },
+  isValidCompany(title, location, industry, ownerId, employees, projects) {
+    // checks if all fields have values
+    if (!title || !location || !industry || !ownerId || !employees || !projects)
+      throw 'Error: All fields have to have values!';
+
+    // validates each field accordingly
+    title = this.isValidString(title, 'title');
+    location = this.isValidLocation(location);
+    industry = this.isValidString(industry, 'industry');
+    ownerId = this.isValidId(ownerId, 'ownerId');
+    employees.forEach(userId => this.isValidId(userId, `${userId}`));
+    projects.forEach(projectId => this.isValidId(projectId, `${projectId}`));
+
+    return { title, location, industry, ownerId, employees, projects };
   },
 };
 

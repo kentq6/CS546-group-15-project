@@ -102,7 +102,7 @@ const exportedMethods = {
     if (taskInfo.status)
       taskInfo.status = validation.isValidStatus(taskInfo.status, ['Pending', 'In Progress', 'Completed']);
     
-    // checks if each input is supplied, then validates each
+    // checks if each input is supplied, then validates that they exist in DB
     if (taskInfo.assignedTo)
       await userData.getUserById(taskInfo.assignedTo);
     if (taskInfo.projectId)

@@ -19,7 +19,7 @@ const exportedMethods = {
     if (!project) throw 'Error: Project not found!';
     return project;
   },
-  async addProject(title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId) {
+  async addProject(title, description, budget, status, employees, tasks, blueprints, reports, companyId) {
     // validates the inputs
     title = validation.isValidString(title, 'title');
     description = validation.isValidString(description, 'description');
@@ -27,8 +27,8 @@ const exportedMethods = {
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
 
     // checks if each input is supplied, then validates each
-    if (teamMembers)
-      for (const userId of teamMembers) await userData.getUserById(userId);
+    if (employees)
+      for (const userId of employees) await userData.getUserById(userId);
     if (tasks)
       for (const taskId of tasks) await taskData.getTaskById(taskId);
     if (blueprints)
@@ -44,7 +44,7 @@ const exportedMethods = {
       description,
       budget,
       status,
-      teamMembers: teamMembers || [],
+      employees: employees || [],
       tasks: tasks || [],
       blueprints: blueprints || [],
       reports: reports || [],
@@ -76,7 +76,7 @@ const exportedMethods = {
       projectInfo.description,
       projectInfo.budget,
       projectInfo.status,
-      projectInfo.teamMembers,
+      projectInfo.employees,
       projectInfo.tasks,
       projectInfo.blueprints,
       projectInfo.reports,
@@ -84,8 +84,8 @@ const exportedMethods = {
     );
 
     // checks if the inputs exist
-    if (projectInfo.teamMembers)
-      for (const userId of projectInfo.teamMembers) await userData.getUserById(userId);
+    if (projectInfo.employees)
+      for (const userId of projectInfo.employees) await userData.getUserById(userId);
     if (projectInfo.tasks)
       for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
     if (projectInfo.blueprints)
@@ -101,7 +101,7 @@ const exportedMethods = {
       description: projectInfo.description,
       budget: projectInfo.budget,
       status: projectInfo.status,
-      teamMembers: projectInfo.teamMembers,
+      employees: projectInfo.employees,
       tasks: projectInfo.tasks,
       blueprints: projectInfo.blueprints,
       reports: projectInfo.reports,
@@ -132,17 +132,16 @@ const exportedMethods = {
     if (projectInfo.status)
       projectInfo.status = validation.isValidStatus(projectInfo.status, ['Pending', 'In Progress', 'Completed']);
    
-    // checks if each input is supplied, then validates each
-    if (projectInfo.teamMembers)
-      for (const userId of projectInfo.teamMembers) await userData.getUserById(userId);
+    // checks if each input is supplied, then validates that they exist in DB
+    if (projectInfo.employees)
+      for (const userId of projectInfo.employees) await userData.getUserById(userId);
     if (projectInfo.tasks)
       for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
     if (projectInfo.blueprints)
       for (const blueprintId of projectInfo.blueprints) await blueprintData.getBlueprintById(blueprintId);
     if (projectInfo.reports)
       for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
-    if (projectInfo.companyId)
-      await companyData.getCompanyById(projectInfo.companyId);
+    if (projectInfo.companyId) await companyData.getCompanyById(projectInfo.companyId);
   
     // updates the document with the new info
     const projectCollection = await projects();

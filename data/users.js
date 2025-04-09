@@ -95,10 +95,12 @@ let exportedMethods = {
       userInfo.password = validation.isValidString(userInfo.password, 'password');
     if (userInfo.role)
       userInfo.role = validation.isValidString(userInfo.role, 'role');
+    
+    // checks if each input is supplied, then validates that they exist in DB
     if (userInfo.projects)
-      userInfo.projects.forEach(projectId => isValidId(projectId, `${projectId}`));
+      for (const projectId in userInfo.projects) await projectData.getProjectById(projectId);
     if (userInfo.companyId)
-      userInfo.companyId = validation.isValidId(companyId, 'companyId');
+      await companyData.getCompanyById(userInfo.companyId);
     
     // updates the correct user with the new info
     const userCollection = await users();

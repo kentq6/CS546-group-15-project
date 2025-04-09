@@ -1,160 +1,97 @@
 //Export the following functions using ES6 Syntax
-import { movies } from '../config/mongoCollections.js';
+import { reports } from '../config/mongoCollections.js';
+import userData from './users.js';
+import projectData from './projects.js';
 import { ObjectId } from 'mongodb';
+import validation from '../validation.js';
 import moment from 'moment';
-import inputValidation from '../helpers.js';
-import { updateOverallRating } from '../helpers.js'; 
 
 const exportedMethods = {
-  async createReview(
-    movieId,
-    reviewTitle,
-    reviewerName,
-    review,
-    rating
-  ) {
-    // checks if movieId is valid
-    movieId = inputValidation.isValidId(movieId, 'movieId');
-
-    // checks if all other inputs are valid
-    const validatedInputs = inputValidation.isValidReview(
-      reviewTitle,
-      reviewerName,
-      review,
-      rating
-    );
+  async getAllIssues(reportId) {
+    // validates the inputs
+    reportId = validation.isValidId(reportId, 'reportId');
     
-    // gets current date
-    const currentDate = moment().format('MM/DD/YYYY');
+    // checks if report matching ID can be found
+    const reportCollection = await reports();
+    const report = await reportCollection.findOne({_id: new ObjectId(reportId)});
+    if (!report) throw `Error: Could not find report with id of ${reportId}`;
+    if (report.issues.length === 0) return [];
   
-    // creates review
-    const newReview = {
+    return report.issues;
+  },
+  async getIssue(issueId) {
+    // validates the inputs
+    issueId = validation.isValidId(issueId, 'issueId');
+
+    // finds the report the issue is in
+    const reportCollection = await reports();
+    const report = await reportCollection.findOne(
+      {'issues._id': new ObjectId(issueId)},
+      {projection: {_id: 0, 'issues.$': 1}}
+    );
+    if (!report) throw 'Error: Issue not found!';
+  
+    // returns issue object
+    return report.issues[0];
+  },
+  async addIssue(reportId, title, description, status, raisedBy) {
+    // validates the inputs
+    reportId = validation.isValidId(reportId, 'reportId');
+    title = validation.isValidString(title, 'title');
+    description = validation.isValidString(description, 'description');
+    status = validation.isValidStatus(status, ['Unresolved', 'Resolved']);
+    const currentDate = moment().format('MM/DD/YYYY');
+    const createdAt = currentDate;
+    const updatedAt = currentDate;
+
+    // checks if the inputs exists, then validates them
+    if (raisedBy) await userData.getUserById(raisedBy);      
+
+    // creates the new user
+    let newIssue = {
       _id: new ObjectId(),
-      reviewTitle: validatedInputs.reviewTitle,
-      reviewDate: currentDate,
-      reviewerName: validatedInputs.reviewerName,
-      review: validatedInputs.review,
-      rating: validatedInputs.rating
+      title,
+      description,
+      status,
+      createdAt,
+      updatedAt,
+      raisedBy,
     };
   
-    // gets movie collection from database
-    const movieCollection = await movies();
-
-    // finds movie with matching movieId and add to reviews
-    const movie = await movieCollection.findOne({_id: new ObjectId(movieId)});
-    
-    // checks if movie exists
-    if (!movie) throw `Error: Could not find movie with id ${movieId}!`;
-
-    // adds all existing reviews and new review into an array
-    const allReviews = [...movie.reviews, newReview];
-    // computes the sum of all the review ratings in allReviews 
-    const sumOfRatings = allReviews.reduce((sum, review) => sum + review.rating, 0);
-    // calculates new overallRating of movieId
-    const newOverallRating = parseFloat((sumOfRatings / allReviews.length).toFixed(1));
-
-    // adds review and updates overallRating
-    const updatedMovie = await movieCollection.findOneAndUpdate(
-      {_id: new ObjectId(movieId)},
-      {
-        $push: {reviews: newReview},
-        $set: {overallRating: newOverallRating}
-      },
+    // finds report that matches ID
+    const reportCollection = await reports();
+    const report = await reportCollection.findOne({_id: new ObjectId(reportId)});
+    if (!report) throw `Error: Could not find report with id ${reportId}!`;
+    // pushes issue to report with matching ID
+    const updatedInfo = await reportCollection.findOneAndUpdate(
+      {_id: new ObjectId(reportId)},
+      {$push: {issues: newIssue}},
       {returnDocument: 'after'}
     );
-
-    // checks if review was added to movie
-    if (!updatedMovie) throw 'Error: Movie could not be updated with new review!';
-
-    // returns ONLY the review object, not all the movie data
-    return newReview;
-  },
-  async getAllReviews(movieId) {
-    /* checks if movieId:
-      1. is not provided
-      2. is not a string or is an empty string
-    */
-    movieId = inputValidation.isValidId(movieId, 'movieId');
+    if (!updatedInfo) throw 'Error: Report could not be updated with new issue!';
     
-    // gets movie collection from database
-    const movieCollection = await movies();
-    // finds movie with matching movieId
-    const movie = await movieCollection.findOne({_id: new ObjectId(movieId)});
-  
-    // checks if movie exists with movieId
-    if (!movie) throw `Error: Could not find movie with id of ${movieId}`;
-
-    // if no reviews, return empty array
-    if (movie.reviews.length === 0) 
-      return [];
-  
-    // returns only the reviews array
-    return movie.reviews;
+    return newIssue;
   },
-  async getReview(reviewId) {
-    /* checks if reviewId:
-      1. is not provided
-      2. is not a string or is an empty string
-      3. is not a valid ObjectId
-    */
-    reviewId = inputValidation.isValidId(reviewId, 'reviewId');
+  async removeIssue(issueId) {
+    // validates the issue ID
+    issueId = validation.isValidId(issueId, 'issueId');
   
-    // gets movie collection from database
-    const movieCollection = await movies();
-    // returns review object with matching reviewId
-    const foundReview = await movieCollection.findOne(
-      {'reviews._id': new ObjectId(reviewId)},
-      {projection: {_id: 0, 'reviews.$': 1}}
-    );
-  
-    // checks if review exists with that id
-    if (!foundReview) throw 'Error: Review not found!';
-  
-    // returns review object
-    return foundReview.reviews[0];
-  },  
-  async removeReview(reviewId) {
-    /* checks if reviewId:
-      1. is not provided
-      2. is not a string or is an empty string
-      3. is not a valid ObjectId
-    */
-    reviewId = inputValidation.isValidId(reviewId, 'reviewId');
-  
-    // gets movie collection from database
-    const movieCollection = await movies();
+    // finds report that issue belogns to and removes it
+    const reportCollection = await reports();
+    const report = await reportCollection.findOne({'issues._id': new ObjectId(issueId)});
+    if (!report) throw `Error: Could not find issue with id ${issueId}!`;
 
-    // finds movie with matching movieId and add to reviews
-    const movie = await movieCollection.findOne({'reviews._id': new ObjectId(reviewId)});
-    
-    // checks if review exists
-    if (!movie) throw `Error: Could not find review with id ${reviewId}!`;
-
-    // removes review with reviewId from array of reviews
-    const allReviews = movie.reviews.filter(review => review._id.toString() !== reviewId);    
-    // computes the sum of all the review ratings in allReviews 
-    const sumOfRatings = allReviews.reduce((sum, review) => sum + review.rating, 0);
-    // calculates new overallRating of movieId
-    let newOverallRating = 0;
-    if (allReviews.length > 0)
-      newOverallRating = parseFloat((sumOfRatings / allReviews.length).toFixed(1));
-
-    // returns review object with matching reviewId
-    const updatedInfo = await movieCollection.findOneAndUpdate(
-      {'reviews._id': new ObjectId(reviewId)},
-      {
-        $pull: {reviews: {_id: new ObjectId(reviewId)}},
-        $set: {overallRating: newOverallRating}
-      },
+    // deletes issue and returns deleted issue
+    const deletionInfo = await reportCollection.findOneAndUpdate(
+      {'issues._id': new ObjectId(issueId)},
+      {$pull: {issues: {_id: new ObjectId(issueId)}}},
       {returnDocument: 'after'}
     );
+    if (!deletionInfo) throw 'Error: Movie could not be updated!';
 
-    // checks if movie could be updated
-    if (!updatedInfo) throw 'Error: Movie could not be updated!';
-
-    // returns movie object that the review was removed from
-    return updatedInfo;
+    return deletionInfo;
   },
+  // TODO: Update Issues
 };
 
 export default exportedMethods;

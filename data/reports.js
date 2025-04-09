@@ -102,10 +102,10 @@ let exportedMethods = {
       reportInfo.fileUrl = validation.isValidFileUrl(reportInfo.fileUrl, 'fileUrl');
     if (reportInfo.tags)
       reportInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
-    if (reportInfo.uploadedBy)
-      reportInfo.uploadedBy = validation.isValidId(uploadedBy, 'uploadedBy');
-    if (reportInfo.projectId)
-      reportInfo.projectId = validation.isValidId(projectId, 'projectId');
+
+    // checks if each input is supplied, then validates that they exist in DB
+    if (reportInfo.uploadedBy) await userData.getUserById(reportInfo.uploadedBy);
+    if (reportInfo.projectId) await projectData.getProjectById(userInfo.projectId);
     
     // updates the correct report with the new info
     const reportCollection = await reports();

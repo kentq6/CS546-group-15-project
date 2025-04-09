@@ -107,7 +107,7 @@ const exportedMethods = {
     if (blueprintInfo.tags)
       blueprintInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
 
-    // checks if each input is supplied, then validates each
+    // checks if each input is supplied, then validates that they exist in DB
     if (blueprintInfo.uploadedBy)
       await userData.getUserById(blueprintInfo.uploadedBy);
     if (blueprintInfo.projectId)
