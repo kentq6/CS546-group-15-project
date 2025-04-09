@@ -13,7 +13,7 @@ let exportedMethods = {
     id = validation.isValidId(id);
     const userCollection = await users();
     const user = await userCollection.findOne({_id: new ObjectId(id)});
-    if (!user) throw 'Error: User not found';
+    if (!user) throw 'Error: User not found!';
     return user;
   },
   async addUser(username, password, role, projects, companyId) {
@@ -21,16 +21,14 @@ let exportedMethods = {
     username = validation.isValidString(username);
     password = validation.isValidString(password);
     role = validation.isValidString(role);
-    // checks if the inputs exists, then validates them
-    if (projects) {
-      projects = validation.isValidStringArray(projects);
-      for (const project of projects) await projectData.getProjectById(project);
-    }
-    if (companyId) {
-      companyId = validation.isValidId(companyId);
-      await companyData.getCompanyById(companyId);
-    }
 
+    // checks if the inputs exists, then validates them
+    if (projects)
+      for (const projectId of projects) await projectData.getProjectById(projectId);
+    if (companyId)
+      await companyData.getCompanyById(companyId);
+
+    // creates the new user
     let newUser = {
       username,
       password,
@@ -39,6 +37,7 @@ let exportedMethods = {
       companyId: companyId || null
     };
 
+    // adds new user to the collection
     const userCollection = await users();
     const newInsertInformation = await userCollection.insertOne(newUser);
     if (!newInsertInformation.insertedId) throw 'Error: Insert failed!';
@@ -51,28 +50,31 @@ let exportedMethods = {
     const deletionInfo = await userCollection.findOneAndDelete({
       _id: new ObjectId(id)
     });
-    if (!deletionInfo) throw `Error: Could not delete user with id of ${id}`;
+    if (!deletionInfo) throw `Error: Could not delete user with id of ${id}!`;
 
     return {...deletionInfo, deleted: true};
   },
-  async updateUserPut(id, username, password, role, projects, companyId) {
+  async updateUserPut(id, userInfo) {
+    // validates the inputs
     id = validation.isValidId(id);
-    [username, password, role, projects, companyId] = validation.isValidUser(
-      username,
-      password,
-      role,
-      projects,
-      companyId
+    userInfo = validation.isValidUser(
+      userInfo.username,
+      userInfo.password,
+      userInfo.role,
+      userInfo.projects,
+      userInfo.companyId
     );
 
+    // creates new user with updated info
     const userUpdateInfo = {
-      username,
-      password,
-      role,
-      projects,
-      companyId
+      username: userInfo.username,
+      password: userInfo.password,
+      role: userInfo.role,
+      projects: userInfo.projects,
+      companyId: userInfo.companyId
     };
-    
+
+    // updates the correct user with the new info
     const userCollection = await users();
     const updateInfo = await userCollection.findOneAndReplace(
       {_id: new ObjectId(id)},
@@ -80,7 +82,7 @@ let exportedMethods = {
       {returnDocument: 'after'}
     );
     if (!updateInfo)
-      throw `Error: Update failed, could not find a user with id of ${id}`;
+      throw `Error: Update failed, could not find a user with id of ${id}!`;
 
     return updateInfo;
   },
@@ -93,14 +95,11 @@ let exportedMethods = {
       userInfo.password = validation.isValidString(userInfo.password, 'password');
     if (userInfo.role)
       userInfo.role = validation.isValidString(userInfo.role, 'role');
-    if (userInfo.projects) {
-      userInfo.projects = validation.isValidStringArray(userInfo.projects);
-      userInfo.projects.forEach(project => isValidId(project));
-    }
-    if (userInfo.companyId) {
-      userInfo.companyId = validation.isValidString(userInfo.companyId, 'companyId');
+    if (userInfo.projects)
+      userInfo.projects.forEach(projectId => isValidId(projectId));
+    if (userInfo.companyId)
       userInfo.companyId = validation.isValidId(companyId);
-    }
+    
     // updates the correct user with the new info
     const userCollection = await users();
     const updateInfo = await userCollection.findOneAndUpdate(
@@ -109,7 +108,7 @@ let exportedMethods = {
       {returnDocument: 'after'}
     );
     if (!updateInfo)
-      throw `Error: Update failed, could not find a user with id of ${id}`;
+      throw `Error: Update failed, could not find a user with id of ${id}!`;
     
     return updateInfo;
   }

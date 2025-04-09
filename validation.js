@@ -53,20 +53,11 @@ const exportedMethods = {
       throw 'Error: Date cannot exceed over 2 years of current year!';
     return date;
   },
-  // Valid String Array
-  isValidStringArray(arr) {
-    if (!Array.isArray(arr))
-      throw `Error: '${arr || 'Provided input'}' is not a string array!`;
+  // Valid File Format
+  isValidFileUrl(fileUrl) {
+    // TODO
 
-    // checks if each elem. is a valid string
-    arr.forEach((elem, index, array) => {
-      this.isValidString(elem, elem);
-      
-      // trims each name
-      array[index] = elem.trim();
-    });
-
-    return arr; 
+    return;
   },
   // Valid Status
   isValidStatus(status, def) {
@@ -80,40 +71,63 @@ const exportedMethods = {
   isValidUser(username, password, role, projects, companyId) {
     // checks if all fields have values
     if (!username || !password || !role || !projects || !companyId)
-      throw 'Error: all fields need to have values!';
+      throw 'Error: All fields need to have values!';
 
     // validates each field accordingly
     username = this.isValidString(username, 'username');
     password = this.isValidString(password, 'password');
     role = this.isValidString(role, 'role');
-    projects = this.isValidStringArray(projects);
-    projects.forEach(project => this.isValidId(project));
-    companyId = this.isValidString(companyId, 'companyId');
+    projects.forEach(projectId => this.isValidId(projectId));
     companyId = this.isValidId(companyId);
 
-    return [username, password, role, projects, companyId];
+    return { username, password, role, projects, companyId };
   },
-  isValidProject(title, description, budget, status, tasks, blueprints, reports, teamMembers, companyId) {
+  isValidProject(title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId) {
     // checks if all fields have values
-    if (!title || !description || !budget || !tasks || !blueprints || !reports || !teamMembers || !companyId)
-      throw 'Error: all fields have to have values!';
+    if (!title || !description || !budget || !status || !teamMembers || !tasks || !blueprints || !reports || !companyId)
+      throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
     title = this.isValidString(title);
     description = this.isValidString(description);
     budget = this.isValidNumber(budget);
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    tasks = this.isValidStringArray(tasks);
-    tasks.forEach(task => this.isValidId(task));
-    blueprints = this.isValidStringArray(blueprints);
-    blueprints.forEach(blueprint => this.isValidId(blueprint));
-    reports = this.isValidStringArray(reports);
-    reports.forEach(report => this.isValidId(report));
-    teamMembers = this.isValidStringArray(teamMembers);
-    teamMembers.forEach(teamMember => this.isValidId(teamMember));
+    teamMembers.forEach(userId => this.isValidId(userId));
+    tasks.forEach(taskId => this.isValidId(taskId));
+    blueprints.forEach(blueprintId => this.isValidId(blueprintId));
+    reports.forEach(reportId => this.isValidId(reportId));
     companyId = this.isValidId(companyId);
 
-    return [title, description, budget, tasks, blueprints, reports, teamMembers, companyId];
+    return { title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId };
+  },
+  isValidTask(title, description, cost, status, assignedTo, projectId) {
+    // checks if all fields have values
+    if (!title || !description || !cost || !status || !assignedTo || !projectId)
+      throw 'Error: All fields have to have values!';
+
+    // validates each field accordingly
+    title = this.isValidString(title);
+    description = this.isValidString(description);
+    cost = this.isValidNumber(cost);
+    status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
+    teamMembers.forEach(userId => this.isValidId(userId));
+    companyId = this.isValidId(companyId);
+
+    return { title, description, cost, tasks, blueprints, reports, teamMembers, companyId };
+  },
+  isValidBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
+    // checks if all fields have values
+    if (!title || !fileUrl || !tags || !uploadedBy || !projectId)
+      throw 'Error: All fields have to have values!';
+
+    // validates each field accordingly
+    title = this.isValidString(title);
+    fileUrl = this.isValidFileUrl(fileUrl);
+    tags.forEach(tag => this.isValidString(tag));
+    uploadedBy = this.isValidId(uploadedBy);
+    projectId = this.isValidId(projectId);
+
+    return { title, fileUrl, tags, uploadedBy, projectId };
   },
 };
 
