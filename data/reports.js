@@ -16,6 +16,11 @@ let exportedMethods = {
     if (!report) throw 'Error: Report not found!';
     return report;
   },
+  async getReportsByTag(tag) {
+    tag = validation.isValidString(tag, 'tag');
+    const reportCollection = await reports();
+    return await reportCollection.find({tags: tag}).toArray();
+  },
   async addReport(title, description, fileUrl, tags, uploadedBy, projectId) {
     // validates the inputs
     title = validation.isValidString(title, 'title');
@@ -118,6 +123,33 @@ let exportedMethods = {
       throw `Error: Update failed, could not find a report with id of ${id}!`;
     
     return updateInfo;
+  },
+  async renameTag(oldTag, newTag) {
+    oldTag = validation.isValidString(oldTag, 'Old Tag');
+    newTag = validation.isValidString(newTag, 'New Tag');
+    if (oldTag === newTag) throw 'Error: tags are the same!';
+
+    let findDocuments = {
+      tags: oldTag
+    };
+
+    let firstUpdate = {
+      $addToSet: {tags: newTag}
+    };
+
+    let secondUpdate = {
+      $pull: {tags: oldTag}
+    };
+    const reportCollection = await reports();
+    let updateOne = await reportCollection.updateMany(findDocuments, firstUpdate);
+    if (updateOne.matchedCount === 0)
+      throw `Error: Could not find any reports with old tag: ${oldTag}!`;
+    let updateTwo = await reportCollection.updateMany(
+      findDocuments,
+      secondUpdate
+    );
+    if (updateTwo.modifiedCount === 0) throw [500, 'Error: Could not update tags!'];
+    return await this.getReportsByTag(newTag);
   }
 };
 

@@ -108,10 +108,8 @@ const exportedMethods = {
       blueprintInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
 
     // checks if each input is supplied, then validates that they exist in DB
-    if (blueprintInfo.uploadedBy)
-      await userData.getUserById(blueprintInfo.uploadedBy);
-    if (blueprintInfo.projectId)
-      await projectData.getProjectById(blueprintInfo.projectId);
+    if (blueprintInfo.uploadedBy) await userData.getUserById(blueprintInfo.uploadedBy);
+    if (blueprintInfo.projectId) await projectData.getProjectById(blueprintInfo.projectId);
 
     // updates the correct user with the new info
     const blueprintCollection = await blueprints();

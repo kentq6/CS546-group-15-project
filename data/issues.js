@@ -1,7 +1,6 @@
 //Export the following functions using ES6 Syntax
 import { reports } from '../config/mongoCollections.js';
 import userData from './users.js';
-import projectData from './projects.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
 import moment from 'moment';
@@ -91,7 +90,36 @@ const exportedMethods = {
 
     return deletionInfo;
   },
-  // TODO: Update Issues
+  async updateIssuePatch(issueId, issueInfo) {
+    // validates the inputs
+    id = validation.isValidId(issueId, 'id');
+    if (issueInfo.title)
+      issueInfo.title = validation.isValidString(issueInfo.title, 'title');
+    if (issueInfo.description)
+      issueInfo.description = validation.isValidString(issueInfo.description, 'description');
+    if (issueInfo.status)
+      issueInfo.status = validation.isValidStatus(issueInfo.status, ['Resolved', 'Unresolved']);
+    
+    // checks if each input is supplied, then validates that they exist in DB
+    if (issueInfo.projects)
+      for (const projectId in issueInfo.projects) await projectData.getProjectById(projectId);
+    if (issueInfo.companyId) await companyData.getCompanyById(issueInfo.companyId);
+
+    // updates updatedAt date for issueInfo
+    issueInfo.updatedAt = moment().format('MM/DD/YYYY');
+
+    // finds report that matches ID
+    const reportCollection = await reports();
+    const updateInfo = await reportCollection.findOneAndUpdate(
+      {'issues._id': new ObjectId(issueId)},
+      {$set: issueInfo},
+      {returnDocument: 'after'}
+    );
+    if (!updateInfo) throw 'Error: Issue not found!';
+  
+    // returns issue object
+    return updateInfo;
+  }
 };
 
 export default exportedMethods;
