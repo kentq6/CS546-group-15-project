@@ -10,7 +10,7 @@ const exportedMethods = {
     return await taskCollection.find({}).toArray();
   },
   async getTaskById(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const taskCollection = await tasks();
     const task = await taskCollection.findOne({_id: new ObjectId(id)});
     if (!task) throw 'Error: Task not found!';
@@ -18,10 +18,10 @@ const exportedMethods = {
   },
   async addTask(title, description, cost, status, assignedTo, projectId) {
     // validates the inputs
-    title = validation.isValidString(title);
-    description = validation.isValidString(description);
-    cost = validation.isValidNumber(cost);
-    status = validation.isValidString(status);
+    title = validation.isValidString(title, 'title');
+    description = validation.isValidString(description, 'description');
+    cost = validation.isValidNumber(cost, 'cost');
+    status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
     if (assignedTo) await userData.getUserById(assignedTo);
     if (projectId) await projectData.getProjectById(projectId);
     
@@ -42,7 +42,7 @@ const exportedMethods = {
     return await this.getTaskById(newId.toString());
   },
   async removeTask(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const taskCollection = await tasks();
     const deletionInfo = await taskCollection.findOneAndDelete({
       _id: new ObjectId(id)
@@ -52,7 +52,7 @@ const exportedMethods = {
   },
   async updateTaskPut(id, taskInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     taskInfo = validation.isValidTask(
       taskInfo.title,
       taskInfo.description,
@@ -92,15 +92,15 @@ const exportedMethods = {
   },
   async updateTaskPatch(id, taskInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     if (taskInfo.title) 
-      taskInfo.title = validation.isValidString(taskInfo.title);
+      taskInfo.title = validation.isValidString(taskInfo.title, 'title');
     if (taskInfo.description)
-      taskInfo.description = validation.isValidString(taskInfo.description);
+      taskInfo.description = validation.isValidString(taskInfo.description, 'description');
     if (taskInfo.cost)
-      taskInfo.cost = validation.isValidNumber(taskInfo.cost);
+      taskInfo.cost = validation.isValidNumber(taskInfo.cost, 'cost');
     if (taskInfo.status)
-      taskInfo.status = validation.isValidString(taskInfo.status);
+      taskInfo.status = validation.isValidStatus(taskInfo.status, ['Pending', 'In Progress', 'Completed']);
     
     // checks if each input is supplied, then validates each
     if (taskInfo.assignedTo)

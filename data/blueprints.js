@@ -10,7 +10,7 @@ const exportedMethods = {
     return await blueprintCollection.find({}).toArray();
   },
   async getBlueprintById(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const blueprintCollection = await blueprints();
     const blueprint = await blueprintCollection.findOne({_id: new ObjectId(id)});
     if (!blueprint) throw 'Error: Blueprint not found!';
@@ -23,13 +23,13 @@ const exportedMethods = {
   },
   async addBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
     // validates the inputs
-    title = validation.isValidString(title);
-    fileUrl = validation.isValidFileUrl(fileUrl);
-    tags.forEach(tag => validation.isValidString(tag));
+    title = validation.isValidString(title, 'title');
+    fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
+    tags.forEach(tag => validation.isValidString(tag, `${tag}`));
     
     // checks if each input is supplied, then validates each
     if (uploadedBy)
-      await userData.getUserById(uplaodedBy);
+      await userData.getUserById(uploadedBy);
     if (projectId)
       await projectData.getProjectById(projectId);
     
@@ -50,7 +50,7 @@ const exportedMethods = {
     return await this.getBlueprintById(newId.toString());
   },
   async removeBlueprint(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const blueprintCollection = await blueprints();
     const deletionInfo = await blueprintCollection.findOneAndDelete({
       _id: new ObjectId(id)
@@ -61,7 +61,7 @@ const exportedMethods = {
   },
   async updateBlueprintPut(id, blueprintInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     blueprintInfo = validation.isValidBlueprint(
       blueprintInfo.title,
       blueprintInfo.fileUrl,
@@ -99,13 +99,13 @@ const exportedMethods = {
   },
   async updateBlueprintPatch(id, blueprintInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     if (blueprintInfo.title) 
-      blueprintInfo.title = validation.isValidString(blueprintInfo.title);
+      blueprintInfo.title = validation.isValidString(blueprintInfo.title, 'title');
     if (blueprintInfo.fileUrl)
-      blueprintInfo.fileUrl = validation.isValidString(blueprintInfo.fileUrl);
+      blueprintInfo.fileUrl = validation.isValidFileUrl(blueprintInfo.fileUrl, 'fileUrl');
     if (blueprintInfo.tags)
-      blueprintInfo.tags.forEach(tag => isValidString(tag));
+      blueprintInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
 
     // checks if each input is supplied, then validates each
     if (blueprintInfo.uploadedBy)

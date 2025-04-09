@@ -13,7 +13,7 @@ const exportedMethods = {
     return await projectCollection.find({}).toArray();
   },
   async getProjectById(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const projectCollection = await projects();
     const project = await projectCollection.findOne({_id: new ObjectId(id)});
     if (!project) throw 'Error: Project not found!';
@@ -21,10 +21,10 @@ const exportedMethods = {
   },
   async addProject(title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId) {
     // validates the inputs
-    title = validation.isValidString(title);
-    description = validation.isValidString(description);
-    budget = validation.isValidNumber(budget);
-    status = validation.isValidString(status);
+    title = validation.isValidString(title, 'title');
+    description = validation.isValidString(description, 'description');
+    budget = validation.isValidNumber(budget, 'budget');
+    status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
 
     // checks if each input is supplied, then validates each
     if (teamMembers)
@@ -59,7 +59,7 @@ const exportedMethods = {
     return await this.getProjectById(newId.toString());
   },
   async removeProject(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const projectCollection = await projects();
     const deletionInfo = await projectCollection.findOneAndDelete({
       _id: new ObjectId(id)
@@ -70,7 +70,7 @@ const exportedMethods = {
   },
   async updateProjectPut(id, projectInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     projectInfo = validation.isValidProject(
       projectInfo.title,
       projectInfo.description,
@@ -122,15 +122,15 @@ const exportedMethods = {
   },
   async updateProjectPatch(id, projectInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     if (projectInfo.title) 
-      projectInfo.title = validation.isValidString(projectInfo.title);
+      projectInfo.title = validation.isValidString(projectInfo.title, 'title');
     if (projectInfo.description)
-      projectInfo.description = validation.isValidString(projectInfo.description);
+      projectInfo.description = validation.isValidString(projectInfo.description, 'description');
     if (projectInfo.budget)
-      projectInfo.budget = validation.isValidNumber(projectInfo.budget);
+      projectInfo.budget = validation.isValidNumber(projectInfo.budget, 'budget');
     if (projectInfo.status)
-      projectInfo.status = validation.isValidString(projectInfo.status);
+      projectInfo.status = validation.isValidStatus(projectInfo.status, ['Pending', 'In Progress', 'Completed']);
    
     // checks if each input is supplied, then validates each
     if (projectInfo.teamMembers)

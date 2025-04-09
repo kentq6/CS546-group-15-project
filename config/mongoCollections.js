@@ -21,5 +21,5 @@ export const projects = getCollectionFn('projects');
 export const tasks = getCollectionFn('tasks');
 export const blueprints = getCollectionFn('blueprints');
 export const reports = getCollectionFn('reports');
-export const issues = getCollectionFn('issues');
+// export const issues = getCollectionFn('issues');
 export const companies = getCollectionFn('companies');

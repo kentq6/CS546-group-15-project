@@ -10,7 +10,7 @@ let exportedMethods = {
     return await userCollection.find({}).toArray();
   },
   async getUserById(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const userCollection = await users();
     const user = await userCollection.findOne({_id: new ObjectId(id)});
     if (!user) throw 'Error: User not found!';
@@ -18,9 +18,9 @@ let exportedMethods = {
   },
   async addUser(username, password, role, projects, companyId) {
     // validates the inputs
-    username = validation.isValidString(username);
-    password = validation.isValidString(password);
-    role = validation.isValidString(role);
+    username = validation.isValidString(username, 'username');
+    password = validation.isValidString(password, 'password');
+    role = validation.isValidString(role, 'role');
 
     // checks if the inputs exists, then validates them
     if (projects)
@@ -45,7 +45,7 @@ let exportedMethods = {
     return await this.getUserById(newInsertInformation.insertedId.toString());
   },
   async removeUser(id) {
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     const userCollection = await users();
     const deletionInfo = await userCollection.findOneAndDelete({
       _id: new ObjectId(id)
@@ -56,7 +56,7 @@ let exportedMethods = {
   },
   async updateUserPut(id, userInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     userInfo = validation.isValidUser(
       userInfo.username,
       userInfo.password,
@@ -88,7 +88,7 @@ let exportedMethods = {
   },
   async updateUserPatch(id, userInfo) {
     // validates the inputs
-    id = validation.isValidId(id);
+    id = validation.isValidId(id, 'id');
     if (userInfo.username)
       userInfo.username = validation.isValidString(userInfo.username, 'username');
     if (userInfo.password)
@@ -96,9 +96,9 @@ let exportedMethods = {
     if (userInfo.role)
       userInfo.role = validation.isValidString(userInfo.role, 'role');
     if (userInfo.projects)
-      userInfo.projects.forEach(projectId => isValidId(projectId));
+      userInfo.projects.forEach(projectId => isValidId(projectId, `${projectId}`));
     if (userInfo.companyId)
-      userInfo.companyId = validation.isValidId(companyId);
+      userInfo.companyId = validation.isValidId(companyId, 'companyId');
     
     // updates the correct user with the new info
     const userCollection = await users();

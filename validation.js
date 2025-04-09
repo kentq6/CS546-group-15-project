@@ -54,10 +54,16 @@ const exportedMethods = {
     return date;
   },
   // Valid File Format
-  isValidFileUrl(fileUrl) {
-    // TODO
+  isValidFileUrl(fileUrl, varName) {
+    // validates input as string
+    fileUrl = this.isValidString(fileUrl, varName || 'fileUrl');
+    // define correct format of file Url
+    const validUrlRegex = /^.+\.(pdf|jpeg|png)$/i;
+    // checks if URL is valid
+    if (!validUrlRegex.test(fileUrl))
+      throw `Error: ${varName} is not a valid file URL!`;
 
-    return;
+    return fileUrl;
   },
   // Valid Status
   isValidStatus(status, def) {
@@ -77,7 +83,7 @@ const exportedMethods = {
     username = this.isValidString(username, 'username');
     password = this.isValidString(password, 'password');
     role = this.isValidString(role, 'role');
-    projects.forEach(projectId => this.isValidId(projectId));
+    projects.forEach(projectId => this.isValidId(projectId, `${projectId}`));
     companyId = this.isValidId(companyId);
 
     return { username, password, role, projects, companyId };
@@ -88,15 +94,15 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title);
-    description = this.isValidString(description);
-    budget = this.isValidNumber(budget);
+    title = this.isValidString(title, 'title');
+    description = this.isValidString(description, 'description');
+    budget = this.isValidNumber(budget, 'budget');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    teamMembers.forEach(userId => this.isValidId(userId));
-    tasks.forEach(taskId => this.isValidId(taskId));
-    blueprints.forEach(blueprintId => this.isValidId(blueprintId));
-    reports.forEach(reportId => this.isValidId(reportId));
-    companyId = this.isValidId(companyId);
+    teamMembers.forEach(userId => this.isValidId(userId, `${userId}`));
+    tasks.forEach(taskId => this.isValidId(taskId, `${taskId}`));
+    blueprints.forEach(blueprintId => this.isValidId(blueprintId, `${blueprintId}`));
+    reports.forEach(reportId => this.isValidId(reportId, `${reportId}`));
+    companyId = this.isValidId(companyId, 'companyId');
 
     return { title, description, budget, status, teamMembers, tasks, blueprints, reports, companyId };
   },
@@ -106,12 +112,12 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title);
-    description = this.isValidString(description);
-    cost = this.isValidNumber(cost);
+    title = this.isValidString(title, 'title');
+    description = this.isValidString(description, 'description');
+    cost = this.isValidNumber(cost, 'cost');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    teamMembers.forEach(userId => this.isValidId(userId));
-    companyId = this.isValidId(companyId);
+    teamMembers.forEach(userId => this.isValidId(userId, `${userId}`));
+    companyId = this.isValidId(companyId, 'companyId');
 
     return { title, description, cost, tasks, blueprints, reports, teamMembers, companyId };
   },
@@ -121,13 +127,28 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title);
-    fileUrl = this.isValidFileUrl(fileUrl);
-    tags.forEach(tag => this.isValidString(tag));
-    uploadedBy = this.isValidId(uploadedBy);
-    projectId = this.isValidId(projectId);
+    title = this.isValidString(title, 'title');
+    fileUrl = this.isValidFileUrl(fileUrl, 'fileUrl');
+    tags.forEach(tag => this.isValidString(tag, `${tag}`));
+    uploadedBy = this.isValidId(uploadedBy, 'uploadedBy');
+    projectId = this.isValidId(projectId, 'projectId');
 
     return { title, fileUrl, tags, uploadedBy, projectId };
+  },
+  isValidReport(title, description, fileUrl, tags, uploadedBy, projectId) {
+    // checks if all fields have values
+    if (!title || !description || !fileUrl || !tags || !uploadedBy || !projectId)
+      throw 'Error: All fields have to have values!';
+
+    // validates each field accordingly
+    title = this.isValidString(title, 'title');
+    description = this.isValidString(description, 'description');
+    fileUrl = this.isValidFileUrl(fileUrl, 'fileUrl');
+    tags.forEach(tag => this.isValidString(tag, `${tag}`));
+    uploadedBy = this.isValidId(uploadedBy, 'uploadedBy');
+    projectId = this.isValidId(projectId, 'projectId');
+
+    return { title, description, fileUrl, tags, uploadedBy, projectId };
   },
 };
 
