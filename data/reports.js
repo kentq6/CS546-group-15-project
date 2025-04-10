@@ -21,9 +21,9 @@ let exportedMethods = {
     const reportCollection = await reports();
     return await reportCollection.find({tags: tag}).toArray();
   },
-  async addReport(title, description, fileUrl, tags, uploadedBy, projectId) {
+  async createReport(title, description, fileUrl, tags, uploadedBy, projectId) {
     // validates the inputs
-    title = validation.isValidString(title, 'title');
+    title = validation.isValidTitle(title);
     description = validation.isValidString(description, 'description');
     fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
@@ -100,7 +100,7 @@ let exportedMethods = {
     // validates the inputs
     id = validation.isValidId(id, 'id');
     if (reportInfo.title)
-      reportInfo.title = validation.isValidString(reportInfo.title, 'title');
+      reportInfo.title = validation.isValidTitle(reportInfo.title);
     if (reportInfo.description)
       reportInfo.description = validation.isValidString(reportInfo.description, 'description');
     if (reportInfo.fileUrl)

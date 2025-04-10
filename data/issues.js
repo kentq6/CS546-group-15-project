@@ -33,10 +33,10 @@ const exportedMethods = {
     // returns issue object
     return report.issues[0];
   },
-  async addIssue(reportId, title, description, status, raisedBy) {
+  async createIssue(reportId, title, description, status, raisedBy) {
     // validates the inputs
     reportId = validation.isValidId(reportId, 'reportId');
-    title = validation.isValidString(title, 'title');
+    title = validation.isValidTitle(title);
     description = validation.isValidString(description, 'description');
     status = validation.isValidStatus(status, ['Unresolved', 'Resolved']);
     const currentDate = moment().format('MM/DD/YYYY');
@@ -94,7 +94,7 @@ const exportedMethods = {
     // validates the inputs
     id = validation.isValidId(issueId, 'id');
     if (issueInfo.title)
-      issueInfo.title = validation.isValidString(issueInfo.title, 'title');
+      issueInfo.title = validation.isValidTitle(issueInfo.title);
     if (issueInfo.description)
       issueInfo.description = validation.isValidString(issueInfo.description, 'description');
     if (issueInfo.status)

@@ -17,26 +17,27 @@ let exportedMethods = {
     if (!company) throw 'Error: Company not found!';
     return company;
   },
-  async addCompany(
+  async createCompany(
     title,
-    createdAt,
+    ownerId,
     location,
     industry,
-    ownerId,
-    employees,
-    projects
+    members,
+    projects,
   ) {
     // validates the inputs
-    title = validation.isValidString(title, 'title');
-    createdAt = moment().format('MM/DD/YYYY');
+    title = validation.isValidTitle(title);
+    const createdAt = moment().format('MM/DD/YYYY');
     
     // checks if the inputs exists, then validates them
     if (location) location = validation.isValidString(location);
     if (industry) industry = validation.isValidString(industry);
     if (ownerId) await userData.getUserById(ownerId);
-    if (employees)
-      for (const userId of employees) await userData.getUserById(userId);
+    if (members)
+      members = validation.isValidArray(members);
+      for (const userId of members) await userData.getUserById(userId);
     if (projects)
+      projects = validation.isValidArray(projects);
       for (const projectId of projects) await projectData.getProjectById(projectId);
 
     // creates the new company
@@ -46,7 +47,7 @@ let exportedMethods = {
       location: location || null,
       industry: industry || null,
       ownerId: ownerId || null,
-      employees: employees || [],
+      members: members || [],
       projects: projects || []
     };
 
@@ -75,7 +76,7 @@ let exportedMethods = {
       companyInfo.location,
       companyInfo.industry,
       companyInfo.ownerId,
-      companyInfo.employees,
+      companyInfo.members,
       companyInfo.projects
     );
 
@@ -89,7 +90,7 @@ let exportedMethods = {
       location: companyInfo.location,
       industry: companyInfo.industry,
       ownerId: companyInfo.ownerId,
-      employees: companyInfo.employees,
+      members: companyInfo.members,
       projects: companyInfo.projects,
     };
     
@@ -109,7 +110,7 @@ let exportedMethods = {
     // validates the inputs
     id = validation.isValidId(id, 'id');
     if (companyInfo.title)
-      companyInfo.title = validation.isValidString(companyInfo.title, 'title');
+      companyInfo.title = validation.isValidTitle(companyInfo.title);
     if (companyInfo.location)
       companyInfo.location = validation.isValidLocation(companyInfo.location, 'location');
     if (companyInfo.industry)
@@ -117,8 +118,8 @@ let exportedMethods = {
     
     // checks if each input is supplied, then validates that they exist in DB
     if (companyInfo.ownerId) await companyData.getUserById(companyInfo.ownerId);
-    if (companyInfo.employees)
-      for (const userId in companyInfo.employees) await userData.getUserById(userId);
+    if (companyInfo.members)
+      for (const userId in companyInfo.members) await userData.getUserById(userId);
     if (companyInfo.projects)
       for (const projectId in companyInfo.projects) await projectData.getUserById(projectId);
     

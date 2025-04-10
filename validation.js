@@ -1,4 +1,3 @@
-//You can add and export any helper functions you want here. If you aren't using any, then you can just leave this file as is.
 import { ObjectId } from 'mongodb';
 
 const exportedMethods = {
@@ -31,6 +30,41 @@ const exportedMethods = {
       throw `Error: ${varName} is an invalid object ID!`;
 
     return id;
+  },
+  // Valid Array
+  isValidArray(arr) {
+    if (!Array.isArray(arr)) throw `Error: ${arr} is not an array!`;
+
+    return arr;
+  },
+  // Valid Name
+  isValidUsername(username) {
+    username = this.isValidString(username, 'username');
+    // defintes correct format of username
+    const validUsername = /^[A-Za-z0-9_]{5,}$/;
+    if (!validUsername.test(username))
+      throw `Error: ${username || 'Provided Input'} is not a valid username!`;
+
+    return username;
+  },
+  // Valid Password
+  isValidPassword(password) {
+    password = this.isValidString(password, 'password');
+    // defintes correct format of password
+    const validPassword = /^[A-Za-z0-9!?]{8,}$/;
+    if (!validPassword.test(password))
+      throw `Error: Not a valid password!`;
+
+    return password;
+  },
+  // Valid Title
+  isValidTitle(title) {
+    title = this.isValidString(title, 'title');
+    const validTitle = /^[A-Za-z0-9\s]{2,}$/;
+    if (!validTitle.test(title))
+      throw `Error: ${title || 'Provided Input'} is not a valid title!`;
+
+    return title;
   },
   // Valid File Format
   isValidFileUrl(fileUrl, varName) {
@@ -79,23 +113,23 @@ const exportedMethods = {
 
     return { username, password, role, projects, companyId };
   },
-  isValidProject(title, description, budget, status, employees, tasks, blueprints, reports, companyId) {
+  isValidProject(title, description, budget, status, members, tasks, blueprints, reports, companyId) {
     // checks if all fields have values
-    if (!title || !description || !budget || !status || !employees || !tasks || !blueprints || !reports || !companyId)
+    if (!title || !description || !budget || !status || !members || !tasks || !blueprints || !reports || !companyId)
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title, 'title');
+    title = this.isValidTitle(title);
     description = this.isValidString(description, 'description');
     budget = this.isValidNumber(budget, 'budget');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    employees.forEach(userId => this.isValidId(userId, `${userId}`));
+    members.forEach(userId => this.isValidId(userId, `${userId}`));
     tasks.forEach(taskId => this.isValidId(taskId, `${taskId}`));
     blueprints.forEach(blueprintId => this.isValidId(blueprintId, `${blueprintId}`));
     reports.forEach(reportId => this.isValidId(reportId, `${reportId}`));
     companyId = this.isValidId(companyId, 'companyId');
 
-    return { title, description, budget, status, employees, tasks, blueprints, reports, companyId };
+    return { title, description, budget, status, members, tasks, blueprints, reports, companyId };
   },
   isValidTask(title, description, cost, status, assignedTo, projectId) {
     // checks if all fields have values
@@ -103,14 +137,14 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title, 'title');
+    title = this.isValidTitle(title);
     description = this.isValidString(description, 'description');
     cost = this.isValidNumber(cost, 'cost');
     status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    employees.forEach(userId => this.isValidId(userId, `${userId}`));
+    members.forEach(userId => this.isValidId(userId, `${userId}`));
     companyId = this.isValidId(companyId, 'companyId');
 
-    return { title, description, cost, tasks, blueprints, reports, employees, companyId };
+    return { title, description, cost, tasks, blueprints, reports, members, companyId };
   },
   isValidBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
     // checks if all fields have values
@@ -118,7 +152,7 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title, 'title');
+    title = this.isValidTitle(title);
     fileUrl = this.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => this.isValidString(tag, `${tag}`));
     uploadedBy = this.isValidId(uploadedBy, 'uploadedBy');
@@ -132,7 +166,7 @@ const exportedMethods = {
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title, 'title');
+    title = this.isValidTitle(title);
     description = this.isValidString(description, 'description');
     fileUrl = this.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => this.isValidString(tag, `${tag}`));
@@ -141,20 +175,20 @@ const exportedMethods = {
 
     return { title, description, fileUrl, tags, uploadedBy, projectId };
   },
-  isValidCompany(title, location, industry, ownerId, employees, projects) {
+  isValidCompany(title, location, industry, ownerId, members, projects) {
     // checks if all fields have values
-    if (!title || !location || !industry || !ownerId || !employees || !projects)
+    if (!title || !location || !industry || !ownerId || !members || !projects)
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
-    title = this.isValidString(title, 'title');
+    title = this.isValidTitle(title);
     location = this.isValidLocation(location);
     industry = this.isValidString(industry, 'industry');
     ownerId = this.isValidId(ownerId, 'ownerId');
-    employees.forEach(userId => this.isValidId(userId, `${userId}`));
+    members.forEach(userId => this.isValidId(userId, `${userId}`));
     projects.forEach(projectId => this.isValidId(projectId, `${projectId}`));
 
-    return { title, location, industry, ownerId, employees, projects };
+    return { title, location, industry, ownerId, members, projects };
   },
 };
 

@@ -21,9 +21,9 @@ const exportedMethods = {
     const blueprintCollection = await blueprints();
     return await blueprintCollection.find({tags: tag}).toArray();
   },
-  async addBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
+  async createBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
     // validates the inputs
-    title = validation.isValidString(title, 'title');
+    title = validation.isValidTitle(title);
     fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
     
@@ -101,7 +101,7 @@ const exportedMethods = {
     // validates the inputs
     id = validation.isValidId(id, 'id');
     if (blueprintInfo.title) 
-      blueprintInfo.title = validation.isValidString(blueprintInfo.title, 'title');
+      blueprintInfo.title = validation.isValidTitle(blueprintInfo.title);
     if (blueprintInfo.fileUrl)
       blueprintInfo.fileUrl = validation.isValidFileUrl(blueprintInfo.fileUrl, 'fileUrl');
     if (blueprintInfo.tags)

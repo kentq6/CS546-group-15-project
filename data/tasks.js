@@ -1,4 +1,4 @@
-import { tasks } from '../config/mongoCollections.js';
+import { tasks, users, projects } from '../config/mongoCollections.js';
 import userData from './users.js';
 import projectData from './projects.js';
 import { ObjectId } from 'mongodb';
@@ -16,9 +16,13 @@ const exportedMethods = {
     if (!task) throw 'Error: Task not found!';
     return task;
   },
-  async addTask(title, description, cost, status, assignedTo, projectId) {
+  async createTask(title, description, cost, status, assignedTo, projectId) {
+    // initializes flag(s) for updating separate document(s)
+    let update
+    let updateProject = false;
+
     // validates the inputs
-    title = validation.isValidString(title, 'title');
+    title = validation.isValidTitle(title);
     description = validation.isValidString(description, 'description');
     cost = validation.isValidNumber(cost, 'cost');
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
@@ -38,6 +42,7 @@ const exportedMethods = {
     // adds task to tasks collection
     const taskCollection = await tasks();
     const newInsertInformation = await taskCollection.insertOne(newTask);
+    
     const newId = newInsertInformation.insertedId;
     return await this.getTaskById(newId.toString());
   },
@@ -94,7 +99,7 @@ const exportedMethods = {
     // validates the inputs
     id = validation.isValidId(id, 'id');
     if (taskInfo.title) 
-      taskInfo.title = validation.isValidString(taskInfo.title, 'title');
+      taskInfo.title = validation.isValidTitle(taskInfo.title);
     if (taskInfo.description)
       taskInfo.description = validation.isValidString(taskInfo.description, 'description');
     if (taskInfo.cost)

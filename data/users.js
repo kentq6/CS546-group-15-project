@@ -16,10 +16,10 @@ let exportedMethods = {
     if (!user) throw 'Error: User not found!';
     return user;
   },
-  async addUser(username, password, role, projects, companyId) {
+  async createUser(username, password, role, projects, companyId) {
     // validates the inputs
-    username = validation.isValidString(username, 'username');
-    password = validation.isValidString(password, 'password');
+    username = validation.isValidUsername(username);
+    password = validation.isValidPassword(password);
     role = validation.isValidString(role, 'role');
 
     // checks if the inputs exists, then validates them

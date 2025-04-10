@@ -19,21 +19,25 @@ const exportedMethods = {
     if (!project) throw 'Error: Project not found!';
     return project;
   },
-  async addProject(title, description, budget, status, employees, tasks, blueprints, reports, companyId) {
+  async createProject(title, description, budget, status, members, tasks, blueprints, reports, companyId) {
     // validates the inputs
-    title = validation.isValidString(title, 'title');
+    title = validation.isValidTitle(title);
     description = validation.isValidString(description, 'description');
     budget = validation.isValidNumber(budget, 'budget');
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
 
     // checks if each input is supplied, then validates each
-    if (employees)
-      for (const userId of employees) await userData.getUserById(userId);
+    if (members)
+      members = validation.isValidArray(members);
+      for (const userId of members) await userData.getUserById(userId);
     if (tasks)
+      tasks = validation.isValidArray(tasks);
       for (const taskId of tasks) await taskData.getTaskById(taskId);
     if (blueprints)
+      blueprints = validation.isValidArray(blueprints);
       for (const blueprintId of blueprints) await blueprintData.getBlueprintById(blueprintId);
     if (reports)
+      reports = validation.isValidArray(reports);
       for (const reportId of tasks) await reportData.getReportById(reportId);
     if (companyId)
       await companyData.getCompanyById(companyId);
@@ -44,7 +48,7 @@ const exportedMethods = {
       description,
       budget,
       status,
-      employees: employees || [],
+      members: members || [],
       tasks: tasks || [],
       blueprints: blueprints || [],
       reports: reports || [],
@@ -76,7 +80,7 @@ const exportedMethods = {
       projectInfo.description,
       projectInfo.budget,
       projectInfo.status,
-      projectInfo.employees,
+      projectInfo.members,
       projectInfo.tasks,
       projectInfo.blueprints,
       projectInfo.reports,
@@ -84,8 +88,8 @@ const exportedMethods = {
     );
 
     // checks if the inputs exist
-    if (projectInfo.employees)
-      for (const userId of projectInfo.employees) await userData.getUserById(userId);
+    if (projectInfo.members)
+      for (const userId of projectInfo.members) await userData.getUserById(userId);
     if (projectInfo.tasks)
       for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
     if (projectInfo.blueprints)
@@ -101,7 +105,7 @@ const exportedMethods = {
       description: projectInfo.description,
       budget: projectInfo.budget,
       status: projectInfo.status,
-      employees: projectInfo.employees,
+      members: projectInfo.members,
       tasks: projectInfo.tasks,
       blueprints: projectInfo.blueprints,
       reports: projectInfo.reports,
@@ -124,7 +128,7 @@ const exportedMethods = {
     // validates the inputs
     id = validation.isValidId(id, 'id');
     if (projectInfo.title) 
-      projectInfo.title = validation.isValidString(projectInfo.title, 'title');
+      projectInfo.title = validation.isValidTitle(projectInfo.title);
     if (projectInfo.description)
       projectInfo.description = validation.isValidString(projectInfo.description, 'description');
     if (projectInfo.budget)
@@ -133,8 +137,8 @@ const exportedMethods = {
       projectInfo.status = validation.isValidStatus(projectInfo.status, ['Pending', 'In Progress', 'Completed']);
    
     // checks if each input is supplied, then validates that they exist in DB
-    if (projectInfo.employees)
-      for (const userId of projectInfo.employees) await userData.getUserById(userId);
+    if (projectInfo.members)
+      for (const userId of projectInfo.members) await userData.getUserById(userId);
     if (projectInfo.tasks)
       for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
     if (projectInfo.blueprints)
