@@ -1,6 +1,5 @@
-import { tasks, users, projects } from '../config/mongoCollections.js';
+import { tasks, projects } from '../config/mongoCollections.js';
 import userData from './users.js';
-import projectData from './projects.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
 
@@ -16,18 +15,16 @@ const exportedMethods = {
     if (!task) throw 'Error: Task not found!';
     return task;
   },
-  async createTask(title, description, cost, status, assignedTo, projectId) {
-    // initializes flag(s) for updating separate document(s)
-    let update
-    let updateProject = false;
-
+  async createTask(projectId, title, description, cost, status, assignedTo) {
     // validates the inputs
-    title = validation.isValidTitle(title);
+    projectId = validation.isValidId(projectId, 'projectId');
+    title = validation.isValidTitle(title, 'title');
     description = validation.isValidString(description, 'description');
     cost = validation.isValidNumber(cost, 'cost');
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
+
+    // checks if the inputs exists, then validates them
     if (assignedTo) await userData.getUserById(assignedTo);
-    if (projectId) await projectData.getProjectById(projectId);
     
     // creates new task
     const newTask = {
@@ -35,27 +32,49 @@ const exportedMethods = {
       description,
       cost,
       status,
-      assignedTo: assignedTo || null,
-      projectId: projectId || null
+      assignedTo: assignedTo || null
     };
     
     // adds task to tasks collection
     const taskCollection = await tasks();
     const newInsertInformation = await taskCollection.insertOne(newTask);
+    if (!newInsertInformation.insertedId) throw 'Error: Task insert failed!';
+
+    // updates project document the task belongs to
+    const projectCollection = await projects();
+    const updateInfo = await projectCollection.findOneAndUpdate(
+      {_id: new ObjectId(projectId)},
+      {$push: {tasks: newInsertInformation.insertedId}},
+      {returnDocument: 'after'}
+    );
+    if (!updateInfo) throw `Error: Could not update project with id ${projectId} with new task!`;
     
-    const newId = newInsertInformation.insertedId;
-    return await this.getTaskById(newId.toString());
+    return await this.getTaskById(newInsertInformation.insertedId.toString());
   },
-  async removeTask(id) {
-    id = validation.isValidId(id, 'id');
+  async removeTask(projectId, taskId) {
+    projectId = validation.isValidId(projectId, 'projectId');
+    taskId = validation.isValidId(taskId, 'taskId');
     const taskCollection = await tasks();
     const deletionInfo = await taskCollection.findOneAndDelete({
-      _id: new ObjectId(id)
+      _id: new ObjectId(taskId)
     });
-    if (!deletionInfo) throw `Error: Could not delete task with id of ${id}!`;
+    if (!deletionInfo) throw `Error: Could not delete task with id of ${taskId}!`;
+
+    // removes task from project it belongs to
+    const projectCollection = await projects();
+    const updateInfo = await projectCollection.findOneAndUpdate(
+      {_id: new ObjectId(projectId)},
+      {$pull: {tasks: new ObjectId(deletionInfo._id)}},
+      {returnDocument: 'after'}
+    );
+    if (!updateInfo) throw `Error: Could not remove task from project with id ${id}!`;
+    
     return {...deletionInfo, deleted: true};
   },
   async updateTaskPut(id, taskInfo) {
+    // initializes update tag(s)
+    let updateProject = false;
+
     // validates the inputs
     id = validation.isValidId(id, 'id');
     taskInfo = validation.isValidTask(
@@ -63,15 +82,11 @@ const exportedMethods = {
       taskInfo.description,
       taskInfo.cost,
       taskInfo.status,
-      taskInfo.assignedTo,
-      taskInfo.projectId
+      taskInfo.assignedTo
     );
     
     // checks if the inputs exist
-    if (taskInfo.assignedTo)
-      await userData.getUserById(taskInfo.assignedTo);
-    if (taskInfo.projectId)
-      await projectData.getProjectById(taskInfo.projectId);
+    if (taskInfo.assignedTo) await userData.getUserById(taskInfo.assignedTo);
     
     // creates new task with updated info
     let taskUpdateInfo = {
@@ -79,8 +94,7 @@ const exportedMethods = {
       description: taskInfo.description,
       cost: taskInfo.cost,
       status: taskInfo.status,
-      assignedTo: taskInfo.assignedTo,
-      projectId: taskInfo.projectId,
+      assignedTo: taskInfo.assignedTo
     };
     
     // updates the correct task with the new info
@@ -109,7 +123,6 @@ const exportedMethods = {
     
     // checks if each input is supplied, then validates that they exist in DB
     if (taskInfo.assignedTo) await userData.getUserById(taskInfo.assignedTo);
-    if (taskInfo.projectId) await projectData.getProjectById(taskInfo.projectId);
     
     // updates the correct task with the new info
     const taskCollection = await tasks();

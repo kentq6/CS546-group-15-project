@@ -1,6 +1,5 @@
-import { reports } from '../config/mongoCollections.js';
+import { reports, projects } from '../config/mongoCollections.js';
 import userData from './users.js';
-import projectData from './projects.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
 
@@ -21,18 +20,16 @@ let exportedMethods = {
     const reportCollection = await reports();
     return await reportCollection.find({tags: tag}).toArray();
   },
-  async createReport(title, description, fileUrl, tags, uploadedBy, projectId) {
+  async createReport(projectId, title, description, fileUrl, tags, uploadedBy) {
     // validates the inputs
-    title = validation.isValidTitle(title);
+    projectId = validation.isValidId(projectId, 'projectId');
+    title = validation.isValidTitle(title, 'title');
     description = validation.isValidString(description, 'description');
     fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
 
     // checks if the inputs exists, then validates them
-    if (uploadedBy)
-      await userData.getUserById(uploadedBy);
-    if (projectId)
-      await projectData.getProjectById(projectId);
+    if (uploadedBy) await userData.getUserById(uploadedBy);
 
     // creates the new report with issues subdocument
     let newReport = {
@@ -48,7 +45,16 @@ let exportedMethods = {
     // adds new report to the collection
     const reportCollection = await reports();
     const newInsertInformation = await reportCollection.insertOne(newReport);
-    if (!newInsertInformation.insertedId) throw 'Error: Insert failed!';
+    if (!newInsertInformation.insertedId) throw 'Error: Report insert failed!';
+
+    // updates project document the report belongs to
+    const projectCollection = await projects();
+    const updateInfo = await projectCollection.findOneAndUpdate(
+      {_id: new ObjectId(projectId)},
+      {$push: {reports: newInsertInformation.insertedId}},
+      {returnDocument: 'after'}
+    );
+    if (!updateInfo) throw `Error: Could not update project with id ${projectId} with new report!`;
 
     return await this.getReportById(newInsertInformation.insertedId.toString());
   },
@@ -60,6 +66,15 @@ let exportedMethods = {
     });
     if (!deletionInfo) throw `Error: Could not delete report with id of ${id}!`;
 
+    // removes report from project it belongs to
+    const projectCollection = await projects();
+    const updateInfo = await projectCollection.findOneAndUpdate(
+      {_id: new ObjectId(projectId)},
+      {$pull: {reports: new ObjectId(deletionInfo._id)}},
+      {returnDocument: 'after'}
+    );
+    if (!updateInfo) throw `Error: Could not remove report from project with id ${id}!`;
+
     return {...deletionInfo, deleted: true};
   },
   async updateReportPut(id, reportInfo) {
@@ -70,8 +85,7 @@ let exportedMethods = {
       reportInfo.description,
       reportInfo.fileUrl,
       reportInfo.tags,
-      reportInfo.uploadedBy,
-      reportInfo.projectId
+      reportInfo.uploadedBy
     );
 
     // creates new report with updated info
@@ -80,8 +94,7 @@ let exportedMethods = {
       description: reportInfo.description,
       fileUrl: reportInfo.fileUrl,
       tags: reportInfo.tags,
-      uploadedBy: reportInfo.uploadedBy,
-      projectId: reportInfo.projectId
+      uploadedBy: reportInfo.uploadedBy
     };
 
     // updates the correct report with the new info
@@ -110,7 +123,6 @@ let exportedMethods = {
 
     // checks if each input is supplied, then validates that they exist in DB
     if (reportInfo.uploadedBy) await userData.getUserById(reportInfo.uploadedBy);
-    if (reportInfo.projectId) await projectData.getProjectById(userInfo.projectId);
     
     // updates the correct report with the new info
     const reportCollection = await reports();

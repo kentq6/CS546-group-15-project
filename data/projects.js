@@ -19,9 +19,9 @@ const exportedMethods = {
     if (!project) throw 'Error: Project not found!';
     return project;
   },
-  async createProject(title, description, budget, status, members, tasks, blueprints, reports, companyId) {
+  async createProject(title, description, budget, status, members, tasks, blueprints, reports) {
     // validates the inputs
-    title = validation.isValidTitle(title);
+    title = validation.isValidTitle(title, 'title');
     description = validation.isValidString(description, 'description');
     budget = validation.isValidNumber(budget, 'budget');
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
@@ -39,8 +39,6 @@ const exportedMethods = {
     if (reports)
       reports = validation.isValidArray(reports);
       for (const reportId of tasks) await reportData.getReportById(reportId);
-    if (companyId)
-      await companyData.getCompanyById(companyId);
 
     // creates new project
     const newProject = {
@@ -51,16 +49,15 @@ const exportedMethods = {
       members: members || [],
       tasks: tasks || [],
       blueprints: blueprints || [],
-      reports: reports || [],
-      companyId: companyId || null 
+      reports: reports || []
     };
 
     // adds project to projects collection
     const projectCollection = await projects();
     const newInsertInformation = await projectCollection.insertOne(newProject);
-    const newId = newInsertInformation.insertedId;
+    if (!newInsertInformation.insertedId) throw 'Error: Project insert failed!';
 
-    return await this.getProjectById(newId.toString());
+    return await this.getProjectById(newInsertInformation.insertedId.toString());
   },
   async removeProject(id) {
     id = validation.isValidId(id, 'id');
@@ -83,8 +80,7 @@ const exportedMethods = {
       projectInfo.members,
       projectInfo.tasks,
       projectInfo.blueprints,
-      projectInfo.reports,
-      projectInfo.companyId
+      projectInfo.reports
     );
 
     // checks if the inputs exist
@@ -96,8 +92,6 @@ const exportedMethods = {
       for (const blueprintId of projectInfo.blueprints) await blueprintData.getBlueprintById(blueprintId);
     if (projectInfo.reports)
       for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
-    if (projectInfo.companyId)
-      await companyData.getCompanyById(projectInfo.companyId);
    
     // creates new project with updated info
     let projectUpdateInfo = {
@@ -108,8 +102,7 @@ const exportedMethods = {
       members: projectInfo.members,
       tasks: projectInfo.tasks,
       blueprints: projectInfo.blueprints,
-      reports: projectInfo.reports,
-      companyId: projectInfo.companyId
+      reports: projectInfo.reports
     };
    
     // updates the correct document with new info
@@ -145,7 +138,6 @@ const exportedMethods = {
       for (const blueprintId of projectInfo.blueprints) await blueprintData.getBlueprintById(blueprintId);
     if (projectInfo.reports)
       for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
-    if (projectInfo.companyId) await companyData.getCompanyById(projectInfo.companyId);
   
     // updates the document with the new info
     const projectCollection = await projects();

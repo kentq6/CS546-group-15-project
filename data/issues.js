@@ -36,7 +36,7 @@ const exportedMethods = {
   async createIssue(reportId, title, description, status, raisedBy) {
     // validates the inputs
     reportId = validation.isValidId(reportId, 'reportId');
-    title = validation.isValidTitle(title);
+    title = validation.isValidTitle(title, 'title');
     description = validation.isValidString(description, 'description');
     status = validation.isValidStatus(status, ['Unresolved', 'Resolved']);
     const currentDate = moment().format('MM/DD/YYYY');

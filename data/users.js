@@ -16,31 +16,23 @@ let exportedMethods = {
     if (!user) throw 'Error: User not found!';
     return user;
   },
-  async createUser(username, password, role, projects, companyId) {
+  async createUser(username, password, role) {
     // validates the inputs
     username = validation.isValidUsername(username);
     password = validation.isValidPassword(password);
     role = validation.isValidString(role, 'role');
 
-    // checks if the inputs exists, then validates them
-    if (projects)
-      for (const projectId of projects) await projectData.getProjectById(projectId);
-    if (companyId)
-      await companyData.getCompanyById(companyId);
-
     // creates the new user
     let newUser = {
       username,
       password,
-      role,
-      projects: projects || [],
-      companyId: companyId || null
+      role
     };
 
     // adds new user to the collection
     const userCollection = await users();
     const newInsertInformation = await userCollection.insertOne(newUser);
-    if (!newInsertInformation.insertedId) throw 'Error: Insert failed!';
+    if (!newInsertInformation.insertedId) throw 'Error: User insert failed!';
 
     return await this.getUserById(newInsertInformation.insertedId.toString());
   },
@@ -60,18 +52,14 @@ let exportedMethods = {
     userInfo = validation.isValidUser(
       userInfo.username,
       userInfo.password,
-      userInfo.role,
-      userInfo.projects,
-      userInfo.companyId
+      userInfo.role
     );
 
     // creates new user with updated info
     const userUpdateInfo = {
       username: userInfo.username,
       password: userInfo.password,
-      role: userInfo.role,
-      projects: userInfo.projects,
-      companyId: userInfo.companyId
+      role: userInfo.role
     };
 
     // updates the correct user with the new info
@@ -95,11 +83,6 @@ let exportedMethods = {
       userInfo.password = validation.isValidString(userInfo.password, 'password');
     if (userInfo.role)
       userInfo.role = validation.isValidString(userInfo.role, 'role');
-    
-    // checks if each input is supplied, then validates that they exist in DB
-    if (userInfo.projects)
-      for (const projectId in userInfo.projects) await projectData.getProjectById(projectId);
-    if (userInfo.companyId) await companyData.getCompanyById(userInfo.companyId);
     
     // updates the correct user with the new info
     const userCollection = await users();

@@ -1,15 +1,16 @@
 import {dbConnection, closeConnection} from '../config/mongoConnection.js';
 import users from '../data/users.js';
+import companies from '../data/companies.js';
 import projects from '../data/projects.js';
 import tasks from '../data/tasks.js';
 import blueprints from '../data/blueprints.js';
 import reports from '../data/reports.js';
-import companies from '../data/companies.js';
+import issues from '../data/issues.js';
 
 const db = await dbConnection();
 await db.dropDatabase();
 
-// Users
+// Creating users
 const owner1 = await users.createUser(
   'alpha12',
   'Passw0rd!',
@@ -71,7 +72,7 @@ const employee7 = await users.createUser(
 );
 const employee7Id = employee7._id.toString();
 
-// Companies
+// Creating companies
 const company1 = await companies.createCompany(
   'Liverpool LLC',
   owner1Id,
@@ -100,19 +101,80 @@ const company3 = await companies.createCompany(
 );
 const company3Id = company3._id.toString();
 
-// Projects
+// Creating projects
 const project1 = await projects.createProject(
   'Build House',
   'Design, purchase materials, and build house according to plans.',
   500000,
   'In Progress',
-  [owner1Id, employee1Id, employee2Id],
+  [employee1Id, employee2Id],
   [],
   [],
-  [],
-  company1Id
+  []
 );
 const project1Id = project1._id.toString();
+const project2 = await projects.createProject(
+  'Redesign Office',
+  'Create tasks, plans, and blueprints for new office design.',
+  1000000,
+  'Completed',
+  [employee3Id, employee4Id],
+  [],
+  [],
+  []
+);
+const project2Id = project2._id.toString();
+const project3 = await projects.createProject(
+  'Build House',
+  'Design, purchase materials, and build house according to plans.',
+  500000,
+  'In Progress',
+  [employee5Id, employee6Id],
+  [],
+  [],
+  []
+);
+const project3Id = project3._id.toString();
+
+// Creating tasks
+const project1Task1 = await tasks.createTask(
+  project1Id,
+  'Field Maintenance',
+  'Bad patches need to be resoded and entire fieid needs to be watered.',
+  10000,
+  'Pending',
+  employee1Id
+);
+
+// Creating blueprints
+const project1Blueprint1 = await blueprints.createBlueprint(
+  project1Id,
+  'Fix Bad Patches',
+  'oldPitch.png',
+  ['Fix', 'Easy'],
+  employee1Id
+);
+
+// Creating reports
+const project1Report1 = await reports.createReport(
+  project1Id,
+  'Field Is Patchy',
+  'Players are tripping over uneven patches of field.',
+  'oldPitch.png',
+  ['Failed'],
+  employee2Id,
+  []
+);
+const project1Report1Id = project1Report1._id.toString();
+
+// Creating issues
+const report1Issue1 = await issues.createIssue(
+  project1Report1Id,
+  'Safety Concern',
+  'Causing injuries.',
+  'Unresolved',
+  owner1Id
+);
 
 console.log('Done seeding database');
 

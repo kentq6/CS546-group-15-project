@@ -26,7 +26,7 @@ let exportedMethods = {
     projects,
   ) {
     // validates the inputs
-    title = validation.isValidTitle(title);
+    title = validation.isValidTitle(title, 'title');
     const createdAt = moment().format('MM/DD/YYYY');
     
     // checks if the inputs exists, then validates them
@@ -54,7 +54,7 @@ let exportedMethods = {
     // adds new company to the collection
     const companyCollection = await companies();
     const newInsertInformation = await companyCollection.insertOne(newCompany);
-    if (!newInsertInformation.insertedId) throw 'Error: Insert failed!';
+    if (!newInsertInformation.insertedId) throw 'Error: Company insert failed!';
 
     return await this.getCompanyById(newInsertInformation.insertedId.toString());
   },
