@@ -106,9 +106,9 @@ let exportedMethods = {
 
     return updateInfo;
   },
-  async updateCompanyPatch(id, companyInfo) {
+  async updateCompanyPatch(companyId, companyInfo) {
     // validates the inputs
-    id = validation.isValidId(id, 'id');
+    companyId = validation.isValidId(companyId, 'companyId');
     if (companyInfo.title)
       companyInfo.title = validation.isValidTitle(companyInfo.title);
     if (companyInfo.location)
@@ -117,21 +117,21 @@ let exportedMethods = {
       companyInfo.industry = validation.isValidString(companyInfo.industry, 'industry');
     
     // checks if each input is supplied, then validates that they exist in DB
-    if (companyInfo.ownerId) await companyData.getUserById(companyInfo.ownerId);
+    if (companyInfo.ownerId) await userData.getUserById(companyInfo.ownerId);
     if (companyInfo.members)
-      for (const userId in companyInfo.members) await userData.getUserById(userId);
+      for (const userId of companyInfo.members) await userData.getUserById(userId);
     if (companyInfo.projects)
-      for (const projectId in companyInfo.projects) await projectData.getUserById(projectId);
+      for (const projectId of companyInfo.projects) await projectData.getProjectById(projectId);
     
     // updates the correct company with the new info
     const companyCollection = await companies();
     const updateInfo = await companyCollection.findOneAndUpdate(
-      {_id: new ObjectId(id)},
+      {_id: new ObjectId(companyId)},
       {$set: companyInfo},
       {returnDocument: 'after'}
     );
     if (!updateInfo)
-      throw `Error: Update failed, could not find a company with id of ${id}!`;
+      throw `Error: Update failed, could not find a company with companyId of ${id}!`;
     
     return updateInfo;
   }

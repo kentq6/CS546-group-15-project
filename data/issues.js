@@ -102,7 +102,7 @@ const exportedMethods = {
     
     // checks if each input is supplied, then validates that they exist in DB
     if (issueInfo.projects)
-      for (const projectId in issueInfo.projects) await projectData.getProjectById(projectId);
+      for (const projectId of issueInfo.projects) await projectData.getProjectById(projectId);
     if (issueInfo.companyId) await companyData.getCompanyById(issueInfo.companyId);
 
     // updates updatedAt date for issueInfo

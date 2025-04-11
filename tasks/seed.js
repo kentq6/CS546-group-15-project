@@ -176,6 +176,12 @@ const report1Issue1 = await issues.createIssue(
   owner1Id
 );
 
+
+// Try updating a company with project
+const updateCompany1 = await companies.updateCompanyPatch(company1Id,
+  {projects: [project1Id]}
+);
+
 console.log('Done seeding database');
 
 await closeConnection();
