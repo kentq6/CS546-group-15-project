@@ -6,7 +6,7 @@ import { User, Company, Project, Task, Blueprint, Report } from '../model/model.
 main();
 
 async function main() {
-    const conn = await connectToDb();
+  await connectToDb();
 
 }
 

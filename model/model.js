@@ -14,8 +14,19 @@ const userSchema = new Schema({
         required: true,
         match: [/^[A-Za-z0-9!?]{8,}$/, 'Incorrect password format']
     },
+    firstname: {
+        type: String,
+        required: true,
+        default: ''
+    },
+    lastname: {
+        type: String,
+        required: true,
+        default: ''
+    },
     role: {
         type: String,
+        enum: ["Owner, Admin, Field Manager, Engineer"],
         required: true
     }
 });
@@ -69,7 +80,7 @@ const projectSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'InProgress', 'Complete']
+        enum: ['Pending', 'In Progress', 'Complete']
     },
     tasks: [{
         type: Schema.Types.ObjectId,
@@ -103,7 +114,7 @@ const taskSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'InProgress', 'Complete']
+        enum: ['Pending', 'In Progress', 'Complete']
     },
     assignedTo: {
         type: Schema.Types.ObjectId,
