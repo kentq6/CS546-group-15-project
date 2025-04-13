@@ -62,40 +62,6 @@ const companySchema = new Schema({
     }]
 }, {timestamps: true});
 
-const projectSchema = new Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true,
-        default: ''
-    },
-    budget: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    status: {
-        type: String,
-        required: true,
-        enum: ['Pending', 'In Progress', 'Complete']
-    },
-    tasks: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Task'
-    }],
-    blueprints: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Blueprint'
-    }],
-    reports: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Blueprint'
-    }]
-});
-
 const taskSchema = new Schema({
     title: {
         type: String,
@@ -184,16 +150,50 @@ const reportSchema = new Schema({
     }, {timestamps: true})]
 });
 
+const projectSchema = new Schema({
+    title: {
+        type: String,
+        required: true,
+        match: [/^[A-Za-z0-9\s]{2,}$/, 'Incorrect title format'],
+        unique: true
+    },
+    description: {
+        type: String,
+        required: true,
+        default: ''
+    },
+    budget: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['Pending', 'In Progress', 'Complete']
+    },
+    members: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        unique: true
+    }],
+    tasks: [taskSchema],
+    blueprints: [blueprintSchema],
+    reports: [reportSchema]
+}, {
+    query: {
+        byMemberId: function(memberId) {
+            return this.where('members').equals(memberId);
+        }
+    }
+});
+
+
+
 export const User = model('User', userSchema);
 
 export const Company = model('Company', companySchema);
 
 export const Project = model('Project', projectSchema);
-
-export const Task = model('Task', taskSchema);
-
-export const Blueprint = model('Blueprint', blueprintSchema);
-
-export const Report = model('Report', reportSchema);
 
 

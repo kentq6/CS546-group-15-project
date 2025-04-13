@@ -43,7 +43,7 @@ export async function createAdminFromOwner(req, res, next) {
         );
         await Company.findOneAndUpdate(
             { owner: owner._id }, 
-            { $addToSet: {employees: new_admin._id} },
+            { $addToSet: { employees: new_admin._id } },
             { session }
         );
         await session.commitTransaction();
@@ -75,9 +75,8 @@ export async function createUnpriveledgedUserFromPriveledgedUser(req, res, next)
             { session }
         );
         await Company.findOneAndUpdate(
-            {
-                $or: [
-                    { owner: privUser._id },
+            {   $or: 
+                [   { owner: privUser._id },
                     { employees: privUser._id }
                 ]
             },
@@ -93,6 +92,8 @@ export async function createUnpriveledgedUserFromPriveledgedUser(req, res, next)
         await session.endSession();
     }
 }
+
+export async function 
 
 
 
