@@ -3,11 +3,19 @@ import userData from './users.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
 
+
+  // updated to follow schema rules & work properly
+
 let exportedMethods = {
+
+
   async getAllReports() {
     const reportCollection = await reports();
     return await reportCollection.find({}).toArray();
   },
+
+
+
   async getReportById(id) {
     id = validation.isValidId(id, 'id');
     const reportCollection = await reports();
@@ -15,11 +23,17 @@ let exportedMethods = {
     if (!report) throw 'Error: Report not found!';
     return report;
   },
+
+
+
   async getReportsByTag(tag) {
     tag = validation.isValidString(tag, 'tag');
     const reportCollection = await reports();
     return await reportCollection.find({tags: tag}).toArray();
   },
+
+
+
   async createReport(projectId, title, description, fileUrl, tags, uploadedBy) {
     // validates the inputs
     projectId = validation.isValidId(projectId, 'projectId');
@@ -58,29 +72,42 @@ let exportedMethods = {
 
     return await this.getReportById(newInsertInformation.insertedId.toString());
   },
+
+
+
   async removeReport(id) {
-    id = validation.isValidId(id, 'id');
+    id = validation.isValidId(id, 'user id');
+  
+    // Remove the rep ID from any project's tasks array first
+    const projectCollection = await projects();
+    const updateResult = await projectCollection.updateOne(
+      { reports: new ObjectId(id) }, // Match user ID as a string
+      { $pull: { reports: new ObjectId(id) } } // Remove the user ID from the members array
+    );
+  
+    if (updateResult.modifiedCount === 0) {
+      console.warn(`Warning: Task with id ${id} was not found in any project's tasks array.`);
+    }
+  
+    // Now delete the task from the tasks collection bruh
     const reportCollection = await reports();
     const deletionInfo = await reportCollection.findOneAndDelete({
-      _id: new ObjectId(id)
+      _id: new ObjectId(id),
     });
-    if (!deletionInfo) throw `Error: Could not delete report with id of ${id}!`;
 
-    // removes report from project it belongs to
-    const projectCollection = await projects();
-    const updateInfo = await projectCollection.findOneAndUpdate(
-      {_id: new ObjectId(projectId)},
-      {$pull: {reports: new ObjectId(deletionInfo._id)}},
-      {returnDocument: 'after'}
-    );
-    if (!updateInfo) throw `Error: Could not remove report from project with id ${id}!`;
+    if (!deletionInfo) {
+      throw new Error(`Error: Could not delete user with id ${id}!`);
+    }
 
-    return {...deletionInfo, deleted: true};
+    return { ...deletionInfo, deleted: true };
   },
+
+
+
   async updateReportPut(id, reportInfo) {
     // validates the inputs
     id = validation.isValidId(id, 'id');
-    reportInfo = validation.isValidReport(
+    reportInfo = validation.isValidReportForPutRQ(
       reportInfo.title,
       reportInfo.description,
       reportInfo.fileUrl,
@@ -109,6 +136,9 @@ let exportedMethods = {
 
     return updateInfo;
   },
+
+
+
   async updateReportPatch(id, reportInfo) {
     // validates the inputs
     id = validation.isValidId(id, 'id');
@@ -136,6 +166,9 @@ let exportedMethods = {
     
     return updateInfo;
   },
+
+
+
   async renameTag(oldTag, newTag) {
     oldTag = validation.isValidString(oldTag, 'Old Tag');
     newTag = validation.isValidString(newTag, 'New Tag');
@@ -162,6 +195,15 @@ let exportedMethods = {
     );
     if (updateTwo.modifiedCount === 0) throw [500, 'Error: Could not update tags!'];
     return await this.getReportsByTag(newTag);
+  },
+
+
+  async getReportsByCompany(companyId) {
+    companyId = validation.isValidId(companyId, 'company id');
+    const reportCollection = await reports();
+    const companyReports = await reportCollection.find({ companyId: new ObjectId(companyId) }).toArray();
+    if (!companyReports || companyReports.length === 0) throw `Error: No reports found for company with id ${companyId}`;
+    return companyReports;
   }
 };
 

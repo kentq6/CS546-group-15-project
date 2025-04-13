@@ -21,29 +21,20 @@ const exportedMethods = {
     return await blueprintCollection.find({tags: tag}).toArray();
   },
   async createBlueprint(projectId, title, fileUrl, tags, uploadedBy) {
-    // validates the inputs
     projectId = validation.isValidId(projectId, 'projectId');
     title = validation.isValidTitle(title, 'title');
     fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
-    
-    // checks if each input is supplied, then validates each
     if (uploadedBy) await userData.getUserById(uploadedBy);
-    
-    // creates new blueprint
     const newBlueprint = {
       title,
       fileUrl,
       tags,
       uploadedBy: uploadedBy || null
     };
-
-    // adds blueprint to blueprints collection
     const blueprintCollection = await blueprints();
     const newInsertInformation = await blueprintCollection.insertOne(newBlueprint);
     if (!newInsertInformation.insertedId) throw 'Error: Blueprint insert failed!';
-
-    // updates project document the blueprint belongs to
     const projectCollection = await projects();
     const updateInfo = await projectCollection.findOneAndUpdate(
       {_id: new ObjectId(projectId)},
@@ -51,63 +42,67 @@ const exportedMethods = {
       {returnDocument: 'after'}
     );
     if (!updateInfo) throw `Error: Could not update project with id ${projectId} with new blueprint!`;
-    
     return await this.getBlueprintById(newInsertInformation.insertedId.toString());
   },
   async removeBlueprint(projectId, blueprintId) {
+    projectId = validation.isValidId(projectId, 'projectId');
     blueprintId = validation.isValidId(blueprintId, 'blueprintId');
     const blueprintCollection = await blueprints();
-    const deletionInfo = await blueprintCollection.findOneAndDelete({
-      _id: new ObjectId(blueprintId)
-    });
-    if (!deletionInfo) throw `Error: Could not delete blueprint with id of ${id}!`;
-
-    // removes blueprint from project it belongs to
+    const blueprint = await blueprintCollection.findOne({ _id: new ObjectId(blueprintId) });
+    if (!blueprint) throw `Error: Blueprint with id ${blueprintId} does not exist!`;
     const projectCollection = await projects();
+    const project = await projectCollection.findOne({ _id: new ObjectId(projectId) });
+    if (!project) throw `Error: Project with id ${projectId} does not exist!`;
     const updateInfo = await projectCollection.findOneAndUpdate(
-      {_id: new ObjectId(projectId)},
-      {$pull: {blueprints: new ObjectId(deletionInfo._id)}},
-      {returnDocument: 'after'}
+      { _id: new ObjectId(projectId) },
+      { $pull: { blueprints: new ObjectId(blueprintId) } },
+      { returnDocument: 'after' }
     );
-    if (!updateInfo) throw `Error: Could not remove blueprint from project with id ${id}!`;
-
-    return {...deletionInfo, deleted: true};
+    if (!updateInfo) throw `Error: Could not remove blueprint from project with id ${projectId}!`;
+    const deletionInfo = await blueprintCollection.findOneAndDelete({
+      _id: new ObjectId(blueprintId),
+    });
+    if (!deletionInfo) throw `Error: Could not delete blueprint with id of ${blueprintId}!`;
+    return { ...deletionInfo, deleted: true };
   },
   async updateBlueprintPut(id, blueprintInfo) {
-    // validates the inputs
-    id = validation.isValidId(id, 'id');
-    blueprintInfo = validation.isValidBlueprint(
-      blueprintInfo.title,
-      blueprintInfo.fileUrl,
-      blueprintInfo.tags,
-      blueprintInfo.uploadedBy
-    );
-
-    // checks if the inputs exist
-    if (blueprintInfo.uploadedBy) await userData.getUserById(blueprintInfo.uploadedBy);
-    
-    // creates new blueprint with updated info
-    let blueprintUpdateInfo = {
-      title: blueprintInfo.title,
-      fileUrl: blueprintInfo.fileUrl,
-      tags: blueprintInfo.tags,
-      uploadedBy: blueprintInfo.uploadedBy
-    };
-
-    // updates the correct user with the new info
-    const blueprintCollection = await blueprints();
-    const updateInfo = await blueprintCollection.findOneAndReplace(
-      {_id: new ObjectId(id)},
-      blueprintUpdateInfo,
-      {returnDocument: 'after'}
-    );
-    if (!updateInfo)
-      throw `Error: Update failed! Could not update blueprint with id ${id}!`;
-
-    return updateInfo;
+    try {
+      console.log('Blueprint Info Before Validation:', blueprintInfo);
+      id = validation.isValidId(id, 'id');
+      blueprintInfo = validation.isValidBlueprint(
+        blueprintInfo.title,
+        blueprintInfo.fileUrl,
+        blueprintInfo.tags,
+        blueprintInfo.uploadedBy
+      );
+      console.log('Validated Blueprint Info:', blueprintInfo);
+      if (blueprintInfo.uploadedBy) {
+        console.log('Uploaded By:', blueprintInfo.uploadedBy);
+        await userData.getUserById(blueprintInfo.uploadedBy);
+      }
+      let blueprintUpdateInfo = {
+        title: blueprintInfo.title,
+        fileUrl: blueprintInfo.fileUrl,
+        tags: blueprintInfo.tags,
+        uploadedBy: blueprintInfo.uploadedBy
+      };
+      console.log('Blueprint Update Info:', blueprintUpdateInfo);
+      const blueprintCollection = await blueprints();
+      const updateInfo = await blueprintCollection.findOneAndReplace(
+        { _id: new ObjectId(id) },
+        blueprintUpdateInfo,
+        { returnDocument: 'after' }
+      );
+      console.log('Update Info:', updateInfo);
+      if (!updateInfo)
+        throw `Error: Update failed! Could not update blueprint with id ${id}!`;
+      return updateInfo;
+    } catch (e) {
+      console.error('Error in updateBlueprintPut:', e);
+      throw e;
+    }
   },
   async updateBlueprintPatch(id, blueprintInfo) {
-    // validates the inputs
     id = validation.isValidId(id, 'id');
     if (blueprintInfo.title) 
       blueprintInfo.title = validation.isValidTitle(blueprintInfo.title);
@@ -115,11 +110,7 @@ const exportedMethods = {
       blueprintInfo.fileUrl = validation.isValidFileUrl(blueprintInfo.fileUrl, 'fileUrl');
     if (blueprintInfo.tags)
       blueprintInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
-
-    // checks if each input is supplied, then validates that they exist in DB
     if (blueprintInfo.uploadedBy) await userData.getUserById(blueprintInfo.uploadedBy);
-
-    // updates the correct user with the new info
     const blueprintCollection = await blueprints();
     let updateInfo = await blueprintCollection.findOneAndUpdate(
       {_id: new ObjectId(id)},
@@ -127,22 +118,18 @@ const exportedMethods = {
       {returnDocument: 'after'}
     );
     if (!updateInfo) throw `Could not update the blueprint with id ${id}!`;
-
     return updateInfo;
   },
   async renameTag(oldTag, newTag) {
     oldTag = validation.isValidString(oldTag, 'Old Tag');
     newTag = validation.isValidString(newTag, 'New Tag');
     if (oldTag === newTag) throw 'Error: tags are the same!';
-
     let findDocuments = {
       tags: oldTag
     };
-
     let firstUpdate = {
       $addToSet: {tags: newTag}
     };
-
     let secondUpdate = {
       $pull: {tags: oldTag}
     };
@@ -156,6 +143,18 @@ const exportedMethods = {
     );
     if (updateTwo.modifiedCount === 0) throw [500, 'Error: Could not update tags!'];
     return await this.getBlueprintsByTag(newTag);
+  },
+  async getBlueprintByCompanyID(companyId) {
+    companyId = validation.isValidId(companyId, 'companyId');
+    const blueprintCollection = await blueprints();
+    const companyBlueprints = await blueprintCollection.find({ companyId: new ObjectId(companyId) }).toArray();
+    return companyBlueprints;
+  },
+  async getBlueprintByProjectID(projectId) {
+    projectId = validation.isValidId(projectId, 'projectId');
+    const blueprintCollection = await blueprints();
+    const projectBlueprints = await blueprintCollection.find({ projectId: new ObjectId(projectId) }).toArray();
+    return projectBlueprints;
   }
 };
 

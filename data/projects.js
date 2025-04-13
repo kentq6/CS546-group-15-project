@@ -1,4 +1,4 @@
-import { projects } from '../config/mongoCollections.js';
+import { companies, projects } from '../config/mongoCollections.js';
 import userData from './users.js';
 import taskData from './tasks.js';
 import blueprintData from './blueprints.js';
@@ -6,6 +6,10 @@ import reportData from './reports.js';
 import companyData from './companies.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
+
+  // updated to follow schema rules & work properly with routes
+
+
 
 const exportedMethods = {
   async getAllProjects() {
@@ -19,106 +23,140 @@ const exportedMethods = {
     if (!project) throw 'Error: Project not found!';
     return project;
   },
-  async createProject(title, description, budget, status, members, tasks, blueprints, reports) {
-    // validates the inputs
+  async createProject(title, description, budget, status, members = [], tasks = [], blueprints = [], reports = [], companyId) {
     title = validation.isValidTitle(title, 'title');
     description = validation.isValidString(description, 'description');
     budget = validation.isValidNumber(budget, 'budget');
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
-
-    // checks if each input is supplied, then validates each
-    if (members)
-      members = validation.isValidArray(members);
+    companyId = validation.isValidId(companyId, 'company id');
+  
+    if (members.length > 0) {
+      members = validation.isValidArray(members, 'members');
       for (const userId of members) await userData.getUserById(userId);
-    if (tasks)
-      tasks = validation.isValidArray(tasks);
+    }
+    if (tasks.length > 0) {
+      tasks = validation.isValidArray(tasks, 'tasks');
       for (const taskId of tasks) await taskData.getTaskById(taskId);
-    if (blueprints)
-      blueprints = validation.isValidArray(blueprints);
+    }
+    if (blueprints.length > 0) {
+      blueprints = validation.isValidArray(blueprints, 'blueprints');
       for (const blueprintId of blueprints) await blueprintData.getBlueprintById(blueprintId);
-    if (reports)
-      reports = validation.isValidArray(reports);
-      for (const reportId of tasks) await reportData.getReportById(reportId);
-
-    // creates new project
+    }
+    if (reports.length > 0) {
+      reports = validation.isValidArray(reports, 'reports');
+      for (const reportId of reports) await reportData.getReportById(reportId);
+    }
+  
     const newProject = {
       title,
       description,
       budget,
       status,
-      members: members || [],
-      tasks: tasks || [],
-      blueprints: blueprints || [],
-      reports: reports || []
+      members,
+      tasks,
+      blueprints,
+      reports,
+      companyId: new ObjectId(companyId)
     };
-
-    // adds project to projects collection
+  
     const projectCollection = await projects();
     const newInsertInformation = await projectCollection.insertOne(newProject);
     if (!newInsertInformation.insertedId) throw 'Error: Project insert failed!';
-
-    return await this.getProjectById(newInsertInformation.insertedId.toString());
+  
+    const projectId = newInsertInformation.insertedId.toString();
+  
+    await companyData.updateCompanyPatch(companyId, {
+      projects: [projectId]
+    });
+  
+    return await this.getProjectById(projectId);
   },
   async removeProject(id) {
-    id = validation.isValidId(id, 'id');
+    id = validation.isValidId(id, 'project id');
+  
     const projectCollection = await projects();
+    const project = await projectCollection.findOne({ _id: new ObjectId(id) });
+    if (!project) throw new Error(`Error: Project with id ${id} does not exist!`);
+  
+    if (project.tasks && project.tasks.length > 0) {
+      for (const taskId of project.tasks) {
+        await taskData.removeTask(taskId.toString());
+      }
+    }
+  
+    if (project.blueprints && project.blueprints.length > 0) {
+      for (const blueprintId of project.blueprints) {
+        await blueprintData.removeBlueprint(id, blueprintId.toString());
+      }
+    }
+  
+    if (project.reports && project.reports.length > 0) {
+      for (const reportId of project.reports) {
+        await reportData.removeReport(reportId.toString());
+      }
+    }
+  
+    const companyCollection = await companies();
+    const updateResult = await companyCollection.updateOne(
+      { projects: new ObjectId(id) },
+      { $pull: { projects: new ObjectId(id) } }
+    );
+  
+    if (updateResult.modifiedCount === 0) {
+      console.warn(`Warning: Project with id ${id} was not found in any company's projects array.`);
+    }
+  
     const deletionInfo = await projectCollection.findOneAndDelete({
-      _id: new ObjectId(id)
+      _id: new ObjectId(id),
     });
-    if (!deletionInfo) throw `Error: Could not delete project with id of ${id}!`;
-
-    return {...deletionInfo, deleted: true};
+  
+    if (!deletionInfo) {
+      throw new Error(`Error: Could not delete project with id ${id}!`);
+    }
+  
+    return { ...deletionInfo, deleted: true };
   },
   async updateProjectPut(id, projectInfo) {
-    // validates the inputs
     id = validation.isValidId(id, 'id');
     projectInfo = validation.isValidProject(
       projectInfo.title,
       projectInfo.description,
       projectInfo.budget,
       projectInfo.status,
-      projectInfo.members,
-      projectInfo.tasks,
-      projectInfo.blueprints,
-      projectInfo.reports
+      projectInfo.members || [],
+      projectInfo.tasks || [],
+      projectInfo.blueprints || [],
+      projectInfo.reports || [],
+      projectInfo.companyId
     );
-
-    // checks if the inputs exist
-    if (projectInfo.members)
-      for (const userId of projectInfo.members) await userData.getUserById(userId);
-    if (projectInfo.tasks)
-      for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
-    if (projectInfo.blueprints)
-      for (const blueprintId of projectInfo.blueprints) await blueprintData.getBlueprintById(blueprintId);
-    if (projectInfo.reports)
-      for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
-   
-    // creates new project with updated info
+  
     let projectUpdateInfo = {
       title: projectInfo.title,
       description: projectInfo.description,
       budget: projectInfo.budget,
       status: projectInfo.status,
-      members: projectInfo.members,
-      tasks: projectInfo.tasks,
-      blueprints: projectInfo.blueprints,
-      reports: projectInfo.reports
+      members: projectInfo.members || [],
+      tasks: projectInfo.tasks || [],
+      blueprints: projectInfo.blueprints || [],
+      reports: projectInfo.reports || [],
+      companyId: projectInfo.companyId
     };
-   
-    // updates the correct document with new info
+  
     const projectCollection = await projects();
     const updateInfo = await projectCollection.findOneAndReplace(
-      {_id: new ObjectId(id)},
+      { _id: new ObjectId(id) },
       projectUpdateInfo,
-      {returnDocument: 'after'}
+      { returnDocument: 'after' }
     );
-    if (!updateInfo)
+  
+    if (!updateInfo) {
       throw `Error: Update failed! Could not update project with id ${id}!`;
-    
+    }
+  
     return updateInfo;
   },
+  
   async updateProjectPatch(id, projectInfo) {
-    // validates the inputs
     id = validation.isValidId(id, 'id');
     if (projectInfo.title) 
       projectInfo.title = validation.isValidTitle(projectInfo.title);
@@ -129,7 +167,6 @@ const exportedMethods = {
     if (projectInfo.status)
       projectInfo.status = validation.isValidStatus(projectInfo.status, ['Pending', 'In Progress', 'Completed']);
    
-    // checks if each input is supplied, then validates that they exist in DB
     if (projectInfo.members)
       for (const userId of projectInfo.members) await userData.getUserById(userId);
     if (projectInfo.tasks)
@@ -139,7 +176,6 @@ const exportedMethods = {
     if (projectInfo.reports)
       for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
   
-    // updates the document with the new info
     const projectCollection = await projects();
     let updateInfo = await projectCollection.findOneAndUpdate(
       {_id: new ObjectId(id)},
@@ -149,7 +185,39 @@ const exportedMethods = {
     if (!updateInfo) throw `Error: Could not update the project with id ${id}!`;
 
     return updateInfo;
-  }
+  },
+
+  async getProjectsByCompany(companyId) {
+    companyId = validation.isValidId(companyId, 'company id');
+    const projectCollection = await projects();
+    const companyProjects = await projectCollection.find({ companyId: new ObjectId(companyId) }).toArray();
+    if (!companyProjects || companyProjects.length === 0) throw `Error: No projects found for company with id ${companyId}`;
+    return companyProjects;
+  },
+
+  async getProjectsByManagerAndCompany(managerId, companyId) {
+    managerId = validation.isValidId(managerId, 'manager id');
+    companyId = validation.isValidId(companyId, 'company id');
+    const projectCollection = await projects();
+    const assignedProjects = await projectCollection.find({
+      members: managerId,
+      companyId: new ObjectId(companyId),
+    }).toArray();
+    if (!assignedProjects || assignedProjects.length === 0) throw `Error: No projects found for manager with id ${managerId} in company ${companyId}`;
+    return assignedProjects;
+  },
+
+  async getProjectsByEngineerAndCompany(engineerId, companyId) {
+    engineerId = validation.isValidId(engineerId, 'engineer id');
+    companyId = validation.isValidId(companyId, 'company id');
+    const projectCollection = await projects();
+    const assignedProjects = await projectCollection.find({
+      members: engineerId,
+      companyId: new ObjectId(companyId),
+    }).toArray();
+    if (!assignedProjects || assignedProjects.length === 0) throw `Error: No projects found for engineer with id ${engineerId} in company ${companyId}`;
+    return assignedProjects;
+  },
 };
 
 export default exportedMethods;
