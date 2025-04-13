@@ -1,187 +1,107 @@
-import {dbConnection, closeConnection} from '../config/mongoConnection.js';
-import users from '../data/users.js';
-import companies from '../data/companies.js';
-import projects from '../data/projects.js';
-import tasks from '../data/tasks.js';
-import blueprints from '../data/blueprints.js';
-import reports from '../data/reports.js';
-import issues from '../data/issues.js';
-
+import { dbConnection, closeConnection } from '../config/mongoConnection.js';
+import { companyData, userData, projectData, taskData, blueprintData, reportData } from '../data/index.js';
+import issueData from '../data/issues.js';
 const db = await dbConnection();
 await db.dropDatabase();
 
-// Creating users
-const owner1 = await users.createUser(
-  'alpha12',
-  'Passw0rd!',
-  'Owner'
-);
-const owner1Id = owner1._id.toString();
-const owner2 = await users.createUser(
-  'bravo99',
-  'abc123??',
-  'Owner'
-);
-const owner2Id = owner2._id.toString();
-const owner3 = await users.createUser(
-  'charl3',
-  'QweRty!2',
-  'Owner'
-);
-const owner3Id = owner3._id.toString();
-const employee1 = await users.createUser(
-  'delta45',
-  'Hello123!',
-  'Temp Job'
-);
-const employee1Id = employee1._id.toString();
-const employee2 = await users.createUser(
-  'echo678',
-  'testTEST?',
-  'Temp Job'
-);
-const employee2Id = employee2._id.toString();
-const employee3 = await users.createUser(
-  'foxtrot',
-  'MyPa55w?',
-  'Temp Job'
-);
-const employee3Id = employee3._id.toString();
-const employee4 = await users.createUser(
-  'golfman',
-  'Secret!?1',
-  'Temp Job'
-);
-const employee4Id = employee4._id.toString();
-const employee5 = await users.createUser(
-  'hotel88',
-  'Knight!3',
-  'Temp Job'
-);
-const employee5Id = employee1._id.toString();
-const employee6 = await users.createUser(
-  'india32',
-  'Welc0me!',
-  'Temp Job'
-);
-const employee6Id = employee6._id.toString();
-const employee7 = await users.createUser(
-  'juliet_x',
-  'Code2024?',
-  'Temp Job'
-);
-const employee7Id = employee7._id.toString();
+try {
+    // Step 1: Create a Company
+    const company1 = await companyData.createCompany(
+        'Liverpool LLC',
+        null, // Owner will be added later
+        'Liverpool, England',
+        'Commercial',
+        [], // Members will be added later
+        [] // Projects will be added later
+    );
+    console.log('Company1 created:', company1);
 
-// Creating companies
-const company1 = await companies.createCompany(
-  'Liverpool LLC',
-  owner1Id,
-  'Liverpool, England',
-  'Commercial',
-  [employee1Id, employee2Id, employee7Id],
-  []
-);
-const company1Id = company1._id.toString();
-const company2 = await companies.createCompany(
-  'Antwerps',
-  owner2Id,
-  '',
-  '',
-  [employee3Id, employee4Id],
-  []
-);
-const company2Id = company2._id.toString();
-const company3 = await companies.createCompany(
-  'GoProject',
-  owner3Id,
-  'Hoboken, NJ',
-  'Residential',
-  [employee5Id, employee6Id],
-  []
-);
-const company3Id = company3._id.toString();
+    // Ensure company1._id exists and is a string
+    if (!company1._id) throw 'Error: Company creation failed, no _id returned!';
+    const companyId = company1._id.toString();
+    console.log('Company1 ID:', companyId);
 
-// Creating projects
-const project1 = await projects.createProject(
-  'Build House',
-  'Design, purchase materials, and build house according to plans.',
-  500000,
-  'In Progress',
-  [employee1Id, employee2Id],
-  [],
-  [],
-  []
-);
-const project1Id = project1._id.toString();
-const project2 = await projects.createProject(
-  'Redesign Office',
-  'Create tasks, plans, and blueprints for new office design.',
-  1000000,
-  'Completed',
-  [employee3Id, employee4Id],
-  [],
-  [],
-  []
-);
-const project2Id = project2._id.toString();
-const project3 = await projects.createProject(
-  'Build House',
-  'Design, purchase materials, and build house according to plans.',
-  500000,
-  'In Progress',
-  [employee5Id, employee6Id],
-  [],
-  [],
-  []
-);
-const project3Id = project3._id.toString();
+    // Step 2: Create Users (Owner and Employees)
+    const owner1 = await userData.createUser('alpha12', 'Passw0rd!', 'Owner', [], companyId);
+    console.log('Owner1 created with ID:', owner1._id.toString());
 
-// Creating tasks
-const project1Task1 = await tasks.createTask(
-  project1Id,
-  'Field Maintenance',
-  'Bad patches need to be resoded and entire fieid needs to be watered.',
-  10000,
-  'Pending',
-  employee1Id
-);
+    const employee1 = await userData.createUser('delta45', 'Hello123!', 'Field Engineer', [], companyId);
+    console.log('Employee1 created with ID:', employee1._id.toString());
 
-// Creating blueprints
-const project1Blueprint1 = await blueprints.createBlueprint(
-  project1Id,
-  'Fix Bad Patches',
-  'oldPitch.png',
-  ['Fix', 'Easy'],
-  employee1Id
-);
+    const employee2 = await userData.createUser('echo678', 'testTEST?', 'Project Manager', [], companyId);
+    console.log('Employee2 created with ID:', employee2._id.toString());
 
-// Creating reports
-const project1Report1 = await reports.createReport(
-  project1Id,
-  'Field Is Patchy',
-  'Players are tripping over uneven patches of field.',
-  'oldPitch.png',
-  ['Failed'],
-  employee2Id,
-  []
-);
-const project1Report1Id = project1Report1._id.toString();
+    // Step 3: Update Company with Owner and Members
+    console.log('Updating company with owner and members...');
+    const updatedCompany = await companyData.updateCompanyPatch(company1._id.toString(), {
+        ownerId: owner1._id.toString(),
+        members: [employee1._id.toString(), employee2._id.toString()],
+    });
+    console.log('Company updated with Owner and Members:', updatedCompany);
 
-// Creating issues
-const report1Issue1 = await issues.createIssue(
-  project1Report1Id,
-  'Safety Concern',
-  'Causing injuries.',
-  'Unresolved',
-  owner1Id
-);
+    // Step 4: Create a Project
+    const project1 = await projectData.createProject(
+        'Build House',
+        'Design, purchase materials, and build house according to plans.',
+        500000,
+        'In Progress',
+        [employee1._id.toString(), employee2._id.toString()], // Members
+        [], // Tasks will be added later
+        [], // Blueprints will be added later
+        [], // Reports will be added later
+        companyId
+    );
+    console.log('Project1 created with ID:', project1._id.toString());
 
+    // Step 5: Update Users with Project IDs
+    await userData.updateUserPatch(employee1._id.toString(), { projects: [project1._id.toString()] });
+    await userData.updateUserPatch(employee2._id.toString(), { projects: [project1._id.toString()] });
 
-// Try updating a company with project
-const updateCompany1 = await companies.updateCompanyPatch(company1Id,
-  {projects: [project1Id]}
-);
+    // Step 6: Create Tasks
+    const task1 = await taskData.createTask(
+        project1._id.toString(),
+        'Field Maintenance',
+        'Bad patches need to be resoded and the entire field needs to be watered.',
+        10000,
+        'Pending',
+        employee1._id.toString()
+    );
+    console.log('Task1 created with ID:', task1._id.toString());
 
-console.log('Done seeding database');
+    // Step 7: Create Blueprints
+    const blueprint1 = await blueprintData.createBlueprint(
+        project1._id.toString(),
+        'Fix Bad Patches',
+        'oldPitch.png',
+        ['Fix', 'Easy'],
+        employee1._id.toString()
+    );
+    console.log('Blueprint1 created with ID:', blueprint1._id.toString());
 
-await closeConnection();
+    // Step 8: Create Reports
+    const report1 = await reportData.createReport(
+        project1._id.toString(),
+        'Field Is Patchy',
+        'Players are tripping over uneven patches of field.',
+        'oldPitch.png',
+        ['Failed'],
+        employee2._id.toString()
+    );
+    console.log('Report1 created with ID:', report1._id.toString());
+
+    // Step 9: Create Issues
+    const issue1 = await issueData.createIssue(
+        report1._id.toString(),
+        'Safety Concern',
+        'Causing injuries.',
+        'Unresolved',
+        owner1._id.toString()
+    );
+    console.log('Issue1 created with ID:', issue1._id.toString());
+
+    console.log('Database seeding completed successfully!');
+} catch (e) {
+    console.error('Error seeding database:', e);
+} finally {
+    await closeConnection();
+}

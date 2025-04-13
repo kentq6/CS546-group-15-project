@@ -12,13 +12,16 @@ const exportedMethods = {
     return strVal;
   },
   // Valid Number
-  isValidNumber(numVal, varName) {
-    if (!numVal) throw `Error: You must supply a ${varName}!`
-    if (typeof numVal !== 'number') throw `Error: ${varName} must be a number!`;
-    if (numVal < 0) throw `Error: ${varName} cannot be negative!`;
-
-    return numVal;
+  isValidNumber(value, fieldName) {
+    if (value === undefined || value === null) throw `Error: ${fieldName} is required!`;
+  
+    const num = Number(value);
+    if (isNaN(num)) throw `Error: ${fieldName} must be a number!`;
+    if (num < 0) throw `Error: ${fieldName} cannot be negative!`;
+  
+    return num;
   },
+  
   // Valid ID Format
   isValidId(id, varName) {
     if (!id) throw `Error: You must provide a valid ${varName}!`;
@@ -32,9 +35,12 @@ const exportedMethods = {
     return id;
   },
   // Valid Array
-  isValidArray(arr) {
-    if (!Array.isArray(arr)) throw `Error: ${arr} is not an array!`;
-
+  isValidArray(arr, varName = 'array') {
+    if (!arr) {
+        console.warn(`Warning: ${varName} is undefined, defaulting to an empty array.`);
+        return [];
+    }
+    if (!Array.isArray(arr)) throw `Error: ${varName} is not an array!`;
     return arr;
   },
   // Valid Name
@@ -113,42 +119,53 @@ const exportedMethods = {
 
     return { username, password, role, projects, companyId };
   },
+
   isValidProject(title, description, budget, status, members, tasks, blueprints, reports, companyId) {
-    // checks if all fields have values
-    if (!title || !description || !budget || !status || !members || !tasks || !blueprints || !reports || !companyId)
-      throw 'Error: All fields have to have values!';
+    // checks if all fields except optional ones have values
+    console.log('Title:', title);
+    console.log('Description:', description);
+    console.log('Budget:', budget);
+    console.log('Status:', status);
+    console.log('Members:', members);
+    console.log('Tasks:', tasks);
+    console.log('Blueprints:', blueprints);
+    console.log('Reports:', reports);
+    console.log('CompanyId:', companyId);
+    if (!title || !description || !budget || !status || !companyId)
+      throw 'Error: Title, description, budget, status, and companyId are required fields!';
 
     // validates each field accordingly
     title = this.isValidTitle(title);
     description = this.isValidString(description, 'description');
     budget = this.isValidNumber(budget, 'budget');
-    status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    members.forEach(userId => this.isValidId(userId, `${userId}`));
-    tasks.forEach(taskId => this.isValidId(taskId, `${taskId}`));
-    blueprints.forEach(blueprintId => this.isValidId(blueprintId, `${blueprintId}`));
-    reports.forEach(reportId => this.isValidId(reportId, `${reportId}`));
+    status = this.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
+    if (members.length !== 0) members.forEach(userId => this.isValidId(userId, `${userId}`));
+    if (tasks.length !== 0) tasks.forEach(taskId => this.isValidId(taskId, `${taskId}`));
+    if (blueprints.length !== 0) blueprints.forEach(blueprintId => this.isValidId(blueprintId, `${blueprintId}`));
+    if (reports.length !== 0) reports.forEach(reportId => this.isValidId(reportId, `${reportId}`));
     companyId = this.isValidId(companyId, 'companyId');
 
     return { title, description, budget, status, members, tasks, blueprints, reports, companyId };
   },
-  isValidTask(title, description, cost, status, assignedTo, projectId) {
+
+  isValidTask(title, description, assignedTo, cost, status, projectId) {
     // checks if all fields have values
     if (!title || !description || !cost || !status || !assignedTo || !projectId)
       throw 'Error: All fields have to have values!';
-
+  
     // validates each field accordingly
     title = this.isValidTitle(title);
     description = this.isValidString(description, 'description');
     cost = this.isValidNumber(cost, 'cost');
-    status = this.isValidStatus(status, ['Pending', 'In Proress', 'Completed']);
-    members.forEach(userId => this.isValidId(userId, `${userId}`));
-    companyId = this.isValidId(companyId, 'companyId');
-
-    return { title, description, cost, tasks, blueprints, reports, members, companyId };
+    status = this.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
+    this.isValidId(assignedTo, 'assignedTo'); // Validate single user ID
+    this.isValidId(projectId, 'projectId'); // Validate project ID
+  
+    return { title, description, cost, status, assignedTo, projectId };
   },
-  isValidBlueprint(title, fileUrl, tags, uploadedBy, projectId) {
+  isValidBlueprint(title, fileUrl, tags, uploadedBy) {
     // checks if all fields have values
-    if (!title || !fileUrl || !tags || !uploadedBy || !projectId)
+    if (!title || !fileUrl || !tags || !uploadedBy)
       throw 'Error: All fields have to have values!';
 
     // validates each field accordingly
@@ -156,9 +173,9 @@ const exportedMethods = {
     fileUrl = this.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => this.isValidString(tag, `${tag}`));
     uploadedBy = this.isValidId(uploadedBy, 'uploadedBy');
-    projectId = this.isValidId(projectId, 'projectId');
 
-    return { title, fileUrl, tags, uploadedBy, projectId };
+
+    return { title, fileUrl, tags, uploadedBy };
   },
   isValidReport(title, description, fileUrl, tags, uploadedBy, projectId) {
     // checks if all fields have values
@@ -174,6 +191,26 @@ const exportedMethods = {
     projectId = this.isValidId(projectId, 'projectId');
 
     return { title, description, fileUrl, tags, uploadedBy, projectId };
+  },
+  isValidReportForPutRQ(title, description, fileUrl, tags, uploadedBy) {
+    // checks if all fields have values
+    if (!title || title.length === 0) {
+      throw "title is invalid";
+    }
+    if (!description || description.length === 0) {
+      throw "description is invalid";
+    }
+    if (!fileUrl || fileUrl.length === 0) {
+      throw "fileUrl is invalid";
+    }
+    if (!tags || !Array.isArray(tags) || tags.length === 0) {
+      throw "tags is invalid";
+    }
+    if (!uploadedBy || uploadedBy.length === 0) {
+      throw "uploadedBy is invalid";
+    }
+
+    return { title, description, fileUrl, tags, uploadedBy };
   },
   isValidCompany(title, location, industry, ownerId, members, projects) {
     // checks if all fields have values

@@ -1,101 +1,146 @@
-import { users } from '../config/mongoCollections.js';
-import projectData from './projects.js';
+import { projects, users } from '../config/mongoCollections.js';
+import projectData from '../data/projects.js';
 import companyData from './companies.js';
 import { ObjectId } from 'mongodb';
 import validation from '../validation.js';
 
 let exportedMethods = {
+  // retrieves all users from the database
   async getAllUsers() {
     const userCollection = await users();
     return await userCollection.find({}).toArray();
   },
+
+  // retrieves a user by their id
   async getUserById(id) {
     id = validation.isValidId(id, 'id');
     const userCollection = await users();
-    const user = await userCollection.findOne({_id: new ObjectId(id)});
-    if (!user) throw 'Error: User not found!';
+    const user = await userCollection.findOne({ _id: new ObjectId(id) });
+    if (!user) throw 'error: user not found!';
     return user;
   },
-  async createUser(username, password, role) {
-    // validates the inputs
+
+  // creates a new user in the database
+  // updated this function to ensure it follows the schema database rules
+  async createUser(username, password, role, projects = [], companyId = null) {
     username = validation.isValidUsername(username);
     password = validation.isValidPassword(password);
     role = validation.isValidString(role, 'role');
+    projects = validation.isValidArray(projects); // this will now work even if projects is not provided
+    projects.forEach((projectId) => validation.isValidId(projectId, 'projectId'));
 
-    // creates the new user
-    let newUser = {
-      username,
-      password,
-      role
+    // ensure companyid is valid and exists if provided
+    if (companyId !== null) {
+        companyId = validation.isValidId(companyId, 'companyId');
+        await companyData.getCompanyById(companyId); // ensure the company exists
+    }
+
+    // create the new user object
+    const newUser = {
+        username,
+        password,
+        role,
+        projects, // default to an empty array if not provided
+        companyId, // default to null if not provided
     };
 
-    // adds new user to the collection
+    // add the new user to the collection
     const userCollection = await users();
     const newInsertInformation = await userCollection.insertOne(newUser);
-    if (!newInsertInformation.insertedId) throw 'Error: User insert failed!';
+    if (!newInsertInformation.insertedId) throw 'error: user insert failed!';
 
     return await this.getUserById(newInsertInformation.insertedId.toString());
   },
+
+  // removes a user by their id
+  // updated this function to ensure it follows the schema database rules
   async removeUser(id) {
-    id = validation.isValidId(id, 'id');
+    id = validation.isValidId(id, 'user id');
+  
+    // remove the user id from any project's members array first
+    const projectCollection = await projects();
+    const updateResult = await projectCollection.updateOne(
+      { members: id }, // match user id as a string
+      { $pull: { members: id } } // remove the user id from the members array
+    );
+    
+    if (updateResult.modifiedCount === 0) {
+      console.warn(`warning: user with id ${id} was not found in any project's members array.`);
+    }
+  
+    // now delete the user from the users collection
     const userCollection = await users();
     const deletionInfo = await userCollection.findOneAndDelete({
-      _id: new ObjectId(id)
+      _id: new ObjectId(id),
     });
-    if (!deletionInfo) throw `Error: Could not delete user with id of ${id}!`;
 
-    return {...deletionInfo, deleted: true};
+    if (!deletionInfo) {
+      throw new Error(`error: could not delete user with id ${id}!`);
+    }
+
+    return { ...deletionInfo, deleted: true };
   },
-  async updateUserPut(id, userInfo) {
-    // validates the inputs
-    id = validation.isValidId(id, 'id');
-    userInfo = validation.isValidUser(
-      userInfo.username,
-      userInfo.password,
-      userInfo.role
-    );
 
-    // creates new user with updated info
-    const userUpdateInfo = {
-      username: userInfo.username,
-      password: userInfo.password,
-      role: userInfo.role
-    };
-
-    // updates the correct user with the new info
+  // updates a user completely (put) by their id
+  // updated this function to ensure it follows the schema database rules
+  async updateUserPut(id, updatedUser) {
     const userCollection = await users();
-    const updateInfo = await userCollection.findOneAndReplace(
-      {_id: new ObjectId(id)},
-      userUpdateInfo,
-      {returnDocument: 'after'}
+    const updateInfo = await userCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedUser }
     );
-    if (!updateInfo)
-      throw `Error: Update failed, could not find a user with id of ${id}!`;
 
-    return updateInfo;
+    if (updateInfo.modifiedCount === 0) {
+      throw 'error: could not update user!';
+    }
+
+    return await this.getUserById(id);
   },
+
+  // updates a user partially (patch) by their id
+  // updated this function to ensure it follows the schema database rules
   async updateUserPatch(id, userInfo) {
-    // validates the inputs
+    // validate inputs
     id = validation.isValidId(id, 'id');
     if (userInfo.username)
-      userInfo.username = validation.isValidString(userInfo.username, 'username');
+      userInfo.username = validation.isValidUsername(userInfo.username);
     if (userInfo.password)
-      userInfo.password = validation.isValidString(userInfo.password, 'password');
+      userInfo.password = validation.isValidPassword(userInfo.password);
     if (userInfo.role)
       userInfo.role = validation.isValidString(userInfo.role, 'role');
-    
-    // updates the correct user with the new info
+    if (userInfo.projects) {
+      userInfo.projects = validation.isValidArray(userInfo.projects);
+      userInfo.projects.forEach((projectId) =>
+        validation.isValidId(projectId, 'projectId')
+      );
+    }
+    if (userInfo.companyId)
+      userInfo.companyId = validation.isValidId(userInfo.companyId, 'companyId');
+
+    // ensure the company exists if companyid is being updated
+    if (userInfo.companyId) {
+      await companyData.getCompanyById(userInfo.companyId);
+    }
+
+    // ensure all projects exist if projects are being updated
+    if (userInfo.projects) {
+      for (const projectId of userInfo.projects) {
+        await projectData.getProjectById(projectId);
+      }
+    }
+
+    // update the user in the collection
     const userCollection = await users();
     const updateInfo = await userCollection.findOneAndUpdate(
-      {_id: new ObjectId(id)},
-      {$set: userInfo},
-      {returnDocument: 'after'}
+      { _id: new ObjectId(id) },
+      { $set: userInfo },
+      { returnDocument: 'after' }
     );
     if (!updateInfo)
-      throw `Error: Update failed, could not find a user with id of ${id}!`;
-    
+      throw `error: update failed, could not find a user with id of ${id}!`;
+
     return updateInfo;
-  }
+  },
 };
 
 export default exportedMethods;
