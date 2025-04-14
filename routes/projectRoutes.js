@@ -28,7 +28,7 @@ router.use((err, req, res, next) => {
     } else if (err.name === 'PermissionError') {
         res.status(401).json({ status: 'error', message: err.message })
     }
-    // TODO: add 
+    // TODO: add catch case for adding duplicate 
 })
 
 
