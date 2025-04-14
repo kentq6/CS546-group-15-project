@@ -148,9 +148,9 @@ const exportedMethods = {
     return { title, description, budget, status, members, tasks, blueprints, reports, companyId };
   },
 
-  isValidTask(title, description, assignedTo, cost, status, projectId) {
+  isValidTask(title, description, assignedTo, cost, status) {
     // checks if all fields have values
-    if (!title || !description || !cost || !status || !assignedTo || !projectId)
+    if (!title || !description || !cost || !status || !assignedTo)
       throw 'Error: All fields have to have values!';
   
     // validates each field accordingly
@@ -159,7 +159,7 @@ const exportedMethods = {
     cost = this.isValidNumber(cost, 'cost');
     status = this.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
     this.isValidId(assignedTo, 'assignedTo'); // Validate single user ID
-    this.isValidId(projectId, 'projectId'); // Validate project ID
+    // this.isValidId(projectId, 'projectId'); // Validate project ID
   
     return { title, description, cost, status, assignedTo, projectId };
   },

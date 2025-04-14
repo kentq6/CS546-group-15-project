@@ -38,7 +38,7 @@ const exportedMethods = {
     const currentDate = moment().format('MM/DD/YYYY');
     const createdAt = currentDate;
     const updatedAt = currentDate;
-    if (raisedBy) await userData.getUserById(raisedBy);
+    if (raisedBy) raisedBy = (await userData.getUserById(raisedBy))._id;
     let newIssue = {
       _id: new ObjectId(),
       title,

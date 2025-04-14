@@ -30,10 +30,14 @@ let exportedMethods = {
     projects.forEach((projectId) => validation.isValidId(projectId, 'projectId'));
 
     // ensure companyid is valid and exists if provided
-    if (companyId !== null) {
-        companyId = validation.isValidId(companyId, 'companyId');
-        await companyData.getCompanyById(companyId); // ensure the company exists
+    if (projects !== null) {
+        let projectIds = [];
+        for (const projectId of projects)
+            projectIds.push((await projectData.getProjectById(projectId))._id);
+        projects = projectIds;
     }
+    if (companyId !== null)
+        companyId = (await companyData.getCompanyById(companyId))._id; // ensure the company exists
 
     // create the new user object
     const newUser = {
@@ -91,7 +95,7 @@ let exportedMethods = {
     );
 
     if (updateInfo.modifiedCount === 0) {
-      throw 'error: could not update user!';
+      throw 'Error: Could not update user!';
     }
 
     return await this.getUserById(id);
@@ -117,17 +121,17 @@ let exportedMethods = {
     if (userInfo.companyId)
       userInfo.companyId = validation.isValidId(userInfo.companyId, 'companyId');
 
-    // ensure the company exists if companyid is being updated
-    if (userInfo.companyId) {
-      await companyData.getCompanyById(userInfo.companyId);
-    }
-
     // ensure all projects exist if projects are being updated
     if (userInfo.projects) {
-      for (const projectId of userInfo.projects) {
-        await projectData.getProjectById(projectId);
-      }
+      let projectIds = [];
+      for (const projectId of userInfo.projects)
+        projectIds.push((await projectData.getProjectById(projectId))._id);
+      userInfo.projects = projectIds;
     }
+
+    // ensure the company exists if companyid is being updated
+    if (userInfo.companyId)
+      userInfo.companyId = (await companyData.getCompanyById(userInfo.companyId))._id;
 
     // update the user in the collection
     const userCollection = await users();

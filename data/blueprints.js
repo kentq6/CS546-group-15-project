@@ -25,11 +25,12 @@ const exportedMethods = {
     title = validation.isValidTitle(title, 'title');
     fileUrl = validation.isValidFileUrl(fileUrl, 'fileUrl');
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
-    if (uploadedBy) await userData.getUserById(uploadedBy);
+    if (uploadedBy) uploadedBy = (await userData.getUserById(uploadedBy))._id;
     const newBlueprint = {
       title,
       fileUrl,
       tags,
+      // uploadedBy: uploadedBy || null
       uploadedBy: uploadedBy || null
     };
     const blueprintCollection = await blueprints();
@@ -78,7 +79,7 @@ const exportedMethods = {
       console.log('Validated Blueprint Info:', blueprintInfo);
       if (blueprintInfo.uploadedBy) {
         console.log('Uploaded By:', blueprintInfo.uploadedBy);
-        await userData.getUserById(blueprintInfo.uploadedBy);
+        blueprintInfo.uploadedBy = (await userData.getUserById(blueprintInfo.uploadedBy))._id;
       }
       let blueprintUpdateInfo = {
         title: blueprintInfo.title,
@@ -110,14 +111,14 @@ const exportedMethods = {
       blueprintInfo.fileUrl = validation.isValidFileUrl(blueprintInfo.fileUrl, 'fileUrl');
     if (blueprintInfo.tags)
       blueprintInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
-    if (blueprintInfo.uploadedBy) await userData.getUserById(blueprintInfo.uploadedBy);
+    if (blueprintInfo.uploadedBy) blueprintInfo.uploadedBy = (await userData.getUserById(blueprintInfo.uploadedBy))._id;
     const blueprintCollection = await blueprints();
     let updateInfo = await blueprintCollection.findOneAndUpdate(
       {_id: new ObjectId(id)},
       {$set: blueprintInfo},
       {returnDocument: 'after'}
     );
-    if (!updateInfo) throw `Could not update the blueprint with id ${id}!`;
+    if (!updateInfo) throw `Error: Could not update the blueprint with id ${id}!`;
     return updateInfo;
   },
   async renameTag(oldTag, newTag) {

@@ -43,7 +43,7 @@ let exportedMethods = {
     tags.forEach(tag => validation.isValidString(tag, `${tag}`));
 
     // checks if the inputs exists, then validates them
-    if (uploadedBy) await userData.getUserById(uploadedBy);
+    if (uploadedBy) uploadedBy = (await userData.getUserById(uploadedBy))._id;
 
     // creates the new report with issues subdocument
     let newReport = {
@@ -52,7 +52,6 @@ let exportedMethods = {
       fileUrl,
       tags,
       uploadedBy,
-      projectId,
       issues: []
     };
 
@@ -115,6 +114,8 @@ let exportedMethods = {
       reportInfo.uploadedBy
     );
 
+    reportInfo.uploadedBy = (await userData.getUserById(reportInfo.uploadedBy))._id;
+
     // creates new report with updated info
     const reportUpdateInfo = {
       title: reportInfo.title,
@@ -152,7 +153,7 @@ let exportedMethods = {
       reportInfo.tags.forEach(tag => isValidString(tag, `${tag}`));
 
     // checks if each input is supplied, then validates that they exist in DB
-    if (reportInfo.uploadedBy) await userData.getUserById(reportInfo.uploadedBy);
+    if (reportInfo.uploadedBy) reportInfo.uploadedBy = (await userData.getUserById(reportInfo.uploadedBy))._id;
     
     // updates the correct report with the new info
     const reportCollection = await reports();

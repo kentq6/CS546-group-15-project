@@ -36,13 +36,26 @@ let exportedMethods = {
     const createdAt = moment().format('MM/DD/YYYY');
     if (location) location = validation.isValidString(location);
     if (industry) industry = validation.isValidString(industry);
-    if (ownerId) await userData.getUserById(ownerId);
-    if (members)
+    if (ownerId) ownerId = (await userData.getUserById(ownerId))._id;
+    if (members) {
       members = validation.isValidArray(members);
-      for (const userId of members) await userData.getUserById(userId);
-    if (projects)
+      // TODO: tries to update to list of ObjectIds but does not work
+      let memberIds = [];
+      for (let userId of members) {
+        // userId = (await userData.getUserById(userId))._id;;
+        // await userData.getUserById(userId);
+        // userId = new ObjectId(userId);
+        await userData.getUserById(userId);
+        memberIds.push(new ObjectId(userId));
+      }
+    }
+    if (projects) {
       projects = validation.isValidArray(projects);
-      for (const projectId of projects) await projectData.getProjectById(projectId);
+      let projectIds = [];
+      for (let projectId of projects) 
+        projectIds.push((await projectData.getProjectById(projectId))._id);
+      projects = projectIds;
+    }
     let newCompany = {
       title,
       createdAt,
@@ -94,6 +107,13 @@ let exportedMethods = {
       companyInfo.members,
       companyInfo.projects
     );
+    // turn id strings into ObjectIds
+    companyInfo.ownerId = (await userData.getUserById(companyInfo.ownerId))._id;
+    for (let userId of companyInfo.members)
+      userId = (await userData.getUserById(userId))._id;
+    for (let projectId of companyInfo.projects)
+      projectId = (await projectData.getProjectById(projectId))._id;
+
     const oldInfo = await this.getCompanyById(id);
     const companyUpdateInfo = {
       title: companyInfo.title,
@@ -122,17 +142,20 @@ let exportedMethods = {
         companyInfo.location = validation.isValidLocation(companyInfo.location, 'location');
     if (companyInfo.industry)
         companyInfo.industry = validation.isValidString(companyInfo.industry, 'industry');
-    if (companyInfo.ownerId) await userData.getUserById(companyInfo.ownerId);
+    if (companyInfo.ownerId) companyInfo.ownerId = (await userData.getUserById(companyInfo.ownerId))._id;
     if (companyInfo.members) {
-        for (const userId of companyInfo.members) {
-            await userData.getUserById(userId);
-        }
+        companyInfo.members = validation.isValidArray(companyInfo.members);
+        let memberIds = [];
+        for (let userId of companyInfo.members)
+          memberIds.push((await userData.getUserById(userId))._id);
+        companyInfo.members = memberIds;
     }
     if (companyInfo.projects) {
-        companyInfo.projects = companyInfo.projects.map((projectId) => {
-            validation.isValidId(projectId, 'projectId');
-            return new ObjectId(projectId);
-        });
+        companyInfo.projects = validation.isValidArray(companyInfo.projects);
+        let projectIds = [];
+        for (let projectId of companyInfo.projects)
+          projectIds.push((await projectData.getProjectById(projectId))._id);
+        companyInfo.projects = projectIds;
     }
     const companyCollection = await companies();
     const existingCompany = await companyCollection.findOne({ _id: new ObjectId(id) });

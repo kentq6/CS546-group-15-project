@@ -33,7 +33,7 @@ const exportedMethods = {
     status = validation.isValidStatus(status, ['Pending', 'In Progress', 'Completed']);
 
     // checks if the assigned user exists
-    if (assignedTo) await userData.getUserById(assignedTo);
+    if (assignedTo) assignedTo = (await userData.getUserById(assignedTo))._id;
 
     // creates new task object
     const newTask = {
@@ -97,6 +97,9 @@ const exportedMethods = {
   // updated to follow schema rules & work properly
   // updates a task completely (put method)
   async updateTaskPut(id, taskInfo) {
+    // validates input
+    id = validation.isValidId(id, 'id');
+    taskInfo = validation.isValidTask(taskInfo);
     // creates the updated task object
     let taskUpdateInfo = {
       title: taskInfo.title,
@@ -104,7 +107,7 @@ const exportedMethods = {
       cost: taskInfo.cost,
       status: taskInfo.status,
       assignedTo: taskInfo.assignedTo,
-      projectId: new ObjectId(taskInfo.projectId), 
+      // projectId: new ObjectId(taskInfo.projectId), 
     };
 
     // updates the task in the database

@@ -32,19 +32,31 @@ const exportedMethods = {
   
     if (members.length > 0) {
       members = validation.isValidArray(members, 'members');
-      for (const userId of members) await userData.getUserById(userId);
+      let userIds = [];
+      for (const userId of members) 
+        userIds.push((await userData.getUserById(userId))._id);
+      members = userIds;
     }
     if (tasks.length > 0) {
       tasks = validation.isValidArray(tasks, 'tasks');
-      for (const taskId of tasks) await taskData.getTaskById(taskId);
+      let taskIds = [];
+      for (const taskId of tasks) 
+        taskIds.push((await taskData.getTaskById(taskId))._id);
+      tasks = taskIds;
     }
     if (blueprints.length > 0) {
       blueprints = validation.isValidArray(blueprints, 'blueprints');
-      for (const blueprintId of blueprints) await blueprintData.getBlueprintById(blueprintId);
+      let blueprintIds = [];
+      for (const blueprintId of blueprints) 
+        blueprintIds.push((await blueprintData.getBlueprintById(blueprintId))._id);
+      blueprints = blueprintIds;
     }
     if (reports.length > 0) {
       reports = validation.isValidArray(reports, 'reports');
-      for (const reportId of reports) await reportData.getReportById(reportId);
+      let reportIds = [];
+      for (const reportId of reports) 
+        reportIds.push((await reportData.getReportById(reportId))._id);
+      reports = reportIds;
     }
   
     const newProject = {
@@ -167,14 +179,30 @@ const exportedMethods = {
     if (projectInfo.status)
       projectInfo.status = validation.isValidStatus(projectInfo.status, ['Pending', 'In Progress', 'Completed']);
    
-    if (projectInfo.members)
-      for (const userId of projectInfo.members) await userData.getUserById(userId);
-    if (projectInfo.tasks)
-      for (const taskId of projectInfo.tasks) await taskData.getTaskById(taskId);
-    if (projectInfo.blueprints)
-      for (const blueprintId of projectInfo.blueprints) await blueprintData.getBlueprintById(blueprintId);
-    if (projectInfo.reports)
-      for (const reportId of projectInfo.reports) await reportData.getReportById(reportId);
+    if (projectInfo.members) {
+      let userIds = [];
+      for (const userId of projectInfo.members) 
+        userIds.push((await userData.getUserById(userId))._id);
+      projectInfo.members = userIds;
+    }
+    if (projectInfo.tasks) {
+      let taskIds = [];
+      for (const taskId of projectInfo.tasks) 
+        taskIds.push((await taskData.getTaskById(taskId))._id);
+      projectInfo.tasks = taskIds;
+    }
+    if (projectInfo.blueprints) {
+      let blueprintIds = [];
+      for (const blueprintId of projectInfo.blueprints) 
+        blueprintIds.push(await blueprintData.getBlueprintById(blueprintId)._id);
+      projectInfo.blueprints = blueprintIds;
+    }
+    if (projectInfo.reports) {
+      let reportIds = [];
+      for (const reportId of projectInfo.reports) 
+        reportIds.push((await reportData.getReportById(reportId))._id);
+      projectInfo.reports = reportIds;
+    }
   
     const projectCollection = await projects();
     let updateInfo = await projectCollection.findOneAndUpdate(
