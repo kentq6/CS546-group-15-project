@@ -1,3 +1,9 @@
+
+
+
+// custom error classes for 'catch all' error handling within the express custom error handler
+
+
 export class PermissionError extends Error {
     constructor(message) {
         super(message);
