@@ -93,7 +93,9 @@ export async function createUnpriveledgedUserFromPriveledgedUser(req, res, next)
     }
 }
 
-export async function 
+export async function getUser(req, res, next) {
+    const user = req.user
+}
 
 
 

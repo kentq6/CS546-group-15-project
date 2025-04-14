@@ -26,7 +26,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ["Owner, Admin, Field Manager, Engineer"],
+        enum: ['Owner', 'Admin', 'Field Manager', 'Engineer'],
         required: true
     }
 });
@@ -80,7 +80,8 @@ const taskSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'In Progress', 'Complete']
+        enum: ['Pending', 'In Progress', 'Complete'],
+        default: 'Pending'
     },
     assignedTo: {
         type: Schema.Types.ObjectId,
@@ -136,7 +137,7 @@ const reportSchema = new Schema({
         description: {
             type: String,
             required: true,
-            default: ""
+            default: ''
         },
         status: {
             type: String,
@@ -170,7 +171,8 @@ const projectSchema = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Pending', 'In Progress', 'Complete']
+        enum: ['Pending', 'In Progress', 'Complete'],
+        default: 'Pending'
     },
     members: [{
         type: Schema.Types.ObjectId,
