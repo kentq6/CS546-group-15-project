@@ -39,7 +39,7 @@ const userSchema = new Schema({
         get: capitalizeWords
     },
     company: {          // not updatable
-        type: Schema.type.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: 'Company'
     },
