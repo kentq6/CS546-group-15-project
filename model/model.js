@@ -171,7 +171,7 @@ const taskSchema = new Schema({
         ref: 'User'
     }
 })
-taskSchema.index({ title: 1, projectId: 1 }, { unique: true })
+taskSchema.index({ title: 1, project: 1 }, { unique: true })
 
 const blueprintSchema = new Schema({
     title: common_fields.title,
@@ -179,7 +179,7 @@ const blueprintSchema = new Schema({
     tags: common_fields.tags,
     uploadedBy: common_fields.uploadedBy
 })
-blueprintSchema.index({ title: 1, projectId: 1 }, { unique: true });
+blueprintSchema.index({ title: 1, project: 1 }, { unique: true });
 
 const projectSchema = new Schema({
     title: {            // unique, not updatable
