@@ -182,7 +182,7 @@ const blueprintSchema = new Schema({
 blueprintSchema.index({ title: 1, projectId: 1 }, { unique: true });
 
 const projectSchema = new Schema({
-    title: {            // unique
+    title: {            // unique, not updatable
         type: String,
         required: true,
         match: [/^[A-Za-z0-9\s]{2,}$/, 'Incorrect title format'],
@@ -229,7 +229,8 @@ top_level_shcemas.map(schema => {
 })
 
 // consts must be declared before usage at top level 
-// (pre-save middleware uses the Model not schema to do castcading update queries)
+// (database middleware uses the Model not schema to do castcading update queries)
+// i.e. projectSchema uses Blueprint, Task, and Report for pre-findOneAndDelete middleware
 // see usage below
 //
 
@@ -241,12 +242,13 @@ export const Task = model('Task', taskSchema)
 export const Report = model('Report', reportSchema)
 
 
-// there must not be any dangling references to a project one it is deleted
+// see mongoose middleware for .pre
 
 /**
  * Castcade project(s) deletion to delete all tasks, blueprints, reports associated 
- * with that project; remove all instances of said project in all ObjectId foreign-key arrays
- * in all User documents
+ * with that project
+ * 
+ * when using Project.findOneAndDelete, ensure that only field managers are able to do this operation
 */
 projectSchema.pre('findOneAndDelete', async function(next) {
     const doc_to_delete = await this.model.findOne(this.getQuery())
@@ -255,6 +257,7 @@ projectSchema.pre('findOneAndDelete', async function(next) {
         next(error)
     } else {
         const {_id: id} = doc_to_delete
+        // implicit $in
         const filter = { project: id } 
         const models_with_fk = [Blueprint, Task, Report]
         
@@ -263,6 +266,7 @@ projectSchema.pre('findOneAndDelete', async function(next) {
     }
 })
 // multi-project deletion castcade implementation
+// Project.deleteMany should never be used outside of this file. only usage is below in company pre-delete middleware
 projectSchema.pre('deleteMany', async function(next) {
     const docs_to_delete = await this.model.find(this.getQuery())
     const models_with_fk = [Blueprint, Task, Report]
@@ -287,7 +291,7 @@ export const Project = model('Project', projectSchema);
  * before calling this method in middleware, ensure that a User who is
  * calling it is validated to be the company's owner
  * 
- * TODO: implement DELETE /company/:id with 'findOneAndDelete'
+ 
  */
 companySchema.pre('findOneAndDelete', async function(next) {
     const doc_to_delete = await this.model
@@ -313,35 +317,43 @@ export const Company = model('Company', companySchema)
  *          * for engineers and field manages, get all projects they are members of 
  *          * for owners get all projects for the company
  *      * POST /projects
- *          * ensure that only task managers call this. 
- *          * automatically add task manager to the project 
- *              (get Task Manager id from param, append it to the list of initial task members, then addToSet)
+ *          * 'field manager' creates a new project
+ *          * ensure that only 'field manager' call this. 
+ *          * automatically add 'field manager' to the project 
+ *              (get 'field manager' id from param, append it to the list of initial members, then addToSet)
  * 
  *      * GET /projects/:project_id
- *          * any memeber belonging to the project or Owner of the project's company can call this
+ *          * gets a singular project
+ *          * any memeber of the project or 'owner' of the project's company can call this
  *      * PUT /projects/:project_id 
- *          * can only be called by Field Managers belonging to this project
- *          * description, status, members, budget
+ *          * updates a singular project
+ *          * can only be called by 'field manager' that is a  member of this project
+ *          * only 'description', 'status', 'members', 'budget' are updatabalse
  *      * DELETE /projects/:project_id 
- *          * must be called by a Task Manager
+ *          * deletes a singular project
+ *          * must be called by a 'field manager' that is a member of this project
  *          * castcade updates to all subproject compoenents
  * 
  *      
  *      * GET /users
+ *          * get all users
  *          * only owner can call this
  *      * POST /users
+ *          * create a user
  *          * only owner can call this
  *          * only able to create a 'non-owner'
  *          * automatically adds user to their company
  *          * for creating an 'owner' see POST /companies
  *      * PUT /users
+ *          * update a user
  *          * only user that made the request can call this 
- *          * can only update their password or first/lastname, NOT projects, username, nor role
+ *          * can only update their 'password', 'firstname' or 'lastname', NOT projects, username, nor role
  * 
  *      * DELETE /users/:user_id
  *          * only owner can call this
  *          * onwer cannot delete oneself
  *          * owner can only delete users belonging to their company
+ *          * for deleting an owner, see DELETE /companies/:company_id
  * 
  * 
  * 
@@ -364,34 +376,34 @@ export const Company = model('Company', companySchema)
  * 
  * 
  *      * GET /projects/:project_id/blueprints
- *          * called by any member of the project or owner
+ *          * callable only by any 'member' of the project or 'owner'
  *          * support filtering by 'title' and 'tags'
  *      * POST /projects/:project_id/blueprints
- *          * called by any member of the project
+ *          * callable only by any 'member' of the project
  *          * save the uploader id to the db
  * 
- *      * GET /projects/:project_id/tasks/:task_id
- *          * called by member of the project or owner
+ *      * GET /projects/:project_id/blueprints/:blueprint_id
+ *          * callable only by any 'member' of the project or 'owner'
  *      * PUT /projects/:project_id/blueprints/:blueprint_id
- *          * called by any member of the project
+ *          * callable only by any 'member' of the project
  *          * 'tags' is the only updatable field
  *      * DELETE /projets/:project_id/blueprints/:blueprint_id
- *          * callable only by Field Manager
+ *          * callable only by 'field manager'
  *
  * 
  * 
  * 
  *      * GET /projects/:project_id/tasks
- *          * called by any member of the project or owner
- *          * for engineers, get all tasks 'assignedTo' them on that project
- *          * for Field Managers, get all tasks for the project
+ *          * callable only by any 'member' of the project or 'owner'
+ *          * for 'engineer', get all tasks 'assignedTo' them for this project
+ *          * for 'field manager' and 'owner', get all tasks for the project
  *          * support filtering by 'title' and 'tags'
  *      * POST /projects/:project_id/tasks
- *          * called by Field Managers
- *          * assigned to any member of the project
+ *          * callable only by 'field manager'
+ *          * 'assignedTo' must be any member of this project
  * 
  *      * GET /projects/:project_id/tasks/:task_id
- *          * called by member of the project or owner
+ *          * callable only by 'member' of the project or 'owner'
  *      * PUT /projects/:project_id/tasks/:task_id
  *          * callable by Field Manger or project member task is 'assignedTo' on that project
  *          * only 'status' is updatable
@@ -401,33 +413,33 @@ export const Company = model('Company', companySchema)
  * 
  * 
  *      * GET /projects/:project_id/reports
- *          * called by any member of the project or owner
+ *          * callable only by any 'member' of the project or 'owner'
  *          * support filtering via query params by 'title' and 'tags'
  *      * POST /projects/:project_id/reports
- *          * called by any member of the project
+ *          * callable only by any 'member' of the project
  *      
  *      * GET /projects/:project_id/reports/:report_id
- *          * called by member of the project or owner
+ *          * callable only by 'member' of the project or 'owner'
  *      * PUT /projects/:project_id/reports/:report_id
- *          * called by any member of the project
+ *          * callable only by any 'member' of the project
  *          * only 'tags' can be updated
  *      * DELETE /projects/:project_id/reports/:report_id
- *          * callable only by Field Manager
+ *          * callable only by 'field manager'
  * 
  * 
  *      * GET /projects/:project_id/reports/:report_id/issues/
  *          * see auth scenario for GET /projects/:project_id/reports
  *      * POST /projects/:project_id/reports/:report_id/issues/
- *          * called by any member of the project
+ *          * callable only by any 'member' of the project
  *          * ensure the issue uploader is input in 'uploadedBy'
  * 
  *      * GET /projects/:project_id/reports/:report_id/issues/:issue_id
  *          * see GET /projects/:project_id/reports for auth scenario
  *      * PUT /projects/:project_id/reports/:report_id/issues/:issue_id
- *          called by any member of the project
+ *          callable only by any 'member' of the project
  *          only 'status' is updatable
  *       * DELETE /projects/:project_id/reports/:report_id/issues/:issue_id
- *          * callable only by Field Manager
+ *          * callable only by 'field manager'
  *          
  * 
  * 
