@@ -12,6 +12,7 @@ router.param('project_id', attatchProjectToReq)
 router.route('/')
     .post(validateProjectFromBody, createProject)
 
+// TODO: add ability to add multiple users to a project
 router.route('/:project_id')
     .get(getProjectById)
 
@@ -20,14 +21,35 @@ router.route('/:project_id')
 // this gets called
 router.use((err, req, res, next) => {
     if (res.headersSent) {
-        return next(err);
-    } else if (err.name === 'ValidationError') {
-        res.status(400).json({ status: 'error', message: err.message })
-    } else if (err.name === 'NotFoundError') {
-        res.status(404).json({ status: 'error', message: err.message })
-    } else if (err.name === 'PermissionError') {
-        res.status(401).json({ status: 'error', message: err.message })
+        return next(err)
     }
+
+    console.error(err)
+    
+    let status
+    switch (err.name) {
+        // thrown by mongoose and joi
+        case 'ValidationError':
+            status = 400
+            break
+        // thrown by mongoose and our own code
+        case 'NotFoundError':
+            status = 404
+            break
+        // thrown by our own code
+        case 'PermissionError':
+            status = 401
+            break
+        // thrown by owr own code, wrapper for error thrown by mongodb driver, search 'MongoServerError' in model/model.js 
+        case  'DuplicateKeyError':
+            status = 409
+            break
+        default:
+            status = 500
+    }
+
+    return res.status(status).json({status: 'error', message: err.message })
+})
     // TODO: add catch case for adding duplicate 
 })
 

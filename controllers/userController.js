@@ -7,7 +7,7 @@ export const attatchUserToReq = async (req, res, next, id) => {
     try {
         const user = await User.findById(id)
         if (!user) {
-            throw new NotFoundError('user not found')
+            throw new NotFoundError('User not found')
         }
         req.user = user
         next()

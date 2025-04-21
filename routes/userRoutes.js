@@ -16,12 +16,28 @@ router.route('/:user_id/projects')
 // this gets called
 router.use((err, req, res, next) => {
     if (res.headersSent) {
-        return next(err);
-    } else if (err.name === 'ValidationError') {
-        res.status(400).json({ status: 'error', message: err.message })
-    } else if (err.name === 'NotFoundError') {
-        res.status(404).json({ status: 'error', message: err.message })
-    } else if (err.name === 'PermissionError') {
-        res.status(401).json({ status: 'error', message: err.message })
+        return next(err)
     }
+
+    console.error(err)
+    
+    let status
+    switch (err.name) {
+        case 'ValidationError':
+            status = 400
+            break
+        case 'NotFoundError':
+            status = 404
+            break
+        case 'PermissionError':
+            status = 401
+            break
+        case  'DuplicateKeyError':
+            status = 409
+            break
+        default:
+            status = 500
+    }
+
+    return res.status(status).json({status: 'error', message: err.message })
 })

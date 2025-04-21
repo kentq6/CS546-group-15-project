@@ -2,12 +2,8 @@ import { NotFoundError } from "../error/error.js"
 import { Project } from "../model/model.js"
 
 /**
- * @summary
- * 
  * param handler function
  * 
- * @desc
- *
  * id contains the param value
  * ensures the id references a valid project and attatches the document 
  * to the rest of the request for subsequent handlers to use
@@ -27,9 +23,9 @@ export const attatchProjectToReq = async (req, res, next, id) => {
 
 export const createProject = async (req, res, next) => {
     try {
-        const {title, description, budget} = req.body
+        const {title = null, description = null, budget = null} = req.body
         const project = await Project.create({ title, description, budget })
-        res.status(201).json(project)
+        return res.status(201).json(project)
     } catch (err) {
         next(err)
     }
@@ -41,7 +37,7 @@ export const getProjectById = async (req, res, next) => {
         if (!project) {
             throw new NotFoundError('Project not found')
         }
-        res.status(200).json(project);
+        return res.status(200).json(project);
     } catch (err) {
         next(err)
     }

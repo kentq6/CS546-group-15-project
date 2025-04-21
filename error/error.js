@@ -17,3 +17,10 @@ export class NotFoundError extends Error {
         this.name = 'NotFoundError'
     }
 }
+
+export class DuplicateKeyError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'DuplicateKeyError'
+    }
+}
