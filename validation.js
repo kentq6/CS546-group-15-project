@@ -44,6 +44,16 @@ const exportedMethods = {
     return arr;
   },
   // Valid Name
+  isValidName(name) {
+    name = this.isValidString(name, 'name');
+    // define correct name format (regex.)
+    const validName = /^[A-Za-z]{3,}\s[A-Za-z]{3,}$/;
+    if (!validName.test(name))
+      throw `Error: ${name || 'Provided input'} is not a valid name!`;
+
+    return name;
+  },
+  // Valid Username
   isValidUsername(username) {
     username = this.isValidString(username, 'username');
     // defintes correct format of username
@@ -105,19 +115,18 @@ const exportedMethods = {
     return location;
   },
   // Valid Movie
-  isValidUser(username, password, role, projects, companyId) {
+  isValidUser(name, username, password, role) {
     // checks if all fields have values
-    if (!username || !password || !role || !projects || !companyId)
+    if (!name || !username || !password || !role)
       throw 'Error: All fields need to have values!';
 
     // validates each field accordingly
+    name = this.isValidName(name);
     username = this.isValidString(username, 'username');
     password = this.isValidString(password, 'password');
     role = this.isValidString(role, 'role');
-    projects.forEach(projectId => this.isValidId(projectId, `${projectId}`));
-    companyId = this.isValidId(companyId);
 
-    return { username, password, role, projects, companyId };
+    return { name, username, password, role };
   },
 
   isValidProject(title, description, budget, status, members, tasks, blueprints, reports, companyId) {

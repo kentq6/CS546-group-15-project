@@ -22,12 +22,13 @@ let exportedMethods = {
 
   // creates a new user in the database
   // updated this function to ensure it follows the schema database rules
-  async createUser(username, password, role, projects = [], companyId = null) {
+  async createUser(name, username, password, role, projects = [], companyId = null) {
+    name = validation.isValidName(name);
     username = validation.isValidUsername(username);
     password = validation.isValidPassword(password);
     role = validation.isValidString(role, 'role');
-    projects = validation.isValidArray(projects); // this will now work even if projects is not provided
-    projects.forEach((projectId) => validation.isValidId(projectId, 'projectId'));
+    // projects = validation.isValidArray(projects); // this will now work even if projects is not provided
+    // projects.forEach((projectId) => validation.isValidId(projectId, 'projectId'));
 
     // ensure companyid is valid and exists if provided
     if (projects !== null) {
@@ -37,10 +38,11 @@ let exportedMethods = {
         projects = projectIds;
     }
     if (companyId !== null)
-        companyId = (await companyData.getCompanyById(companyId))._id; // ensure the company exists
+        companyId = (await companyData.getCompanyById(companyId))._id; // ensure the company exists, gets companyId
 
     // create the new user object
     const newUser = {
+        name,
         username,
         password,
         role,
@@ -106,6 +108,8 @@ let exportedMethods = {
   async updateUserPatch(id, userInfo) {
     // validate inputs
     id = validation.isValidId(id, 'id');
+    if (userInfo.name)
+      userInfo.name = validation.isValidName(userInfo.name);
     if (userInfo.username)
       userInfo.username = validation.isValidUsername(userInfo.username);
     if (userInfo.password)

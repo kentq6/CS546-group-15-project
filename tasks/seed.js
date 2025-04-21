@@ -22,13 +22,13 @@ try {
     console.log('Company1 ID:', companyId);
 
     // Step 2: Create Users (Owner and Employees)
-    const owner1 = await userData.createUser('alpha12', 'Passw0rd!', 'Owner', [], companyId);
+    const owner1 = await userData.createUser('Ryan Gravenberch', 'alpha12', 'Passw0rd!', 'Owner', [], companyId);
     console.log('Owner1 created with ID:', owner1._id.toString());
 
-    const employee1 = await userData.createUser('delta45', 'Hello123!', 'Field Engineer', [], companyId);
+    const employee1 = await userData.createUser('Wataru Endo', 'delta45', 'Hello123!', 'Field Engineer', [], companyId);
     console.log('Employee1 created with ID:', employee1._id.toString());
 
-    const employee2 = await userData.createUser('echo678', 'testTEST?', 'Project Manager', [], companyId);
+    const employee2 = await userData.createUser('Cody Gakpo', 'echo678', 'testTEST?', 'Project Manager', [], companyId);
     console.log('Employee2 created with ID:', employee2._id.toString());
 
     // Step 3: Update Company with Owner and Members

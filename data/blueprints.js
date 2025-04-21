@@ -30,7 +30,6 @@ const exportedMethods = {
       title,
       fileUrl,
       tags,
-      // uploadedBy: uploadedBy || null
       uploadedBy: uploadedBy || null
     };
     const blueprintCollection = await blueprints();
