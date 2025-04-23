@@ -2,7 +2,13 @@ import { NotFoundError } from "./error/error.js"
 
 
 
-// lazily retrieves keys and values for those keys
+
+
+/**
+ * lazily retrieves keys and values for those keys into a smaller object
+ * if a key is not found, within the body it is ignored
+ * 
+ */
 export function getNonRequiredFields(keys, body) {
     const nonRequiredFields = keys.reduce((acc, curr) => {
         if (curr in body) {
@@ -17,8 +23,6 @@ export function getNonRequiredFields(keys, body) {
  * makes a smaller object from 'body' that from all keys in 'keys'
  * if a key in 'keys' is not found in 'body' the function throws 
  * 
- * @param {*} keys 
- * @param {*} obj 
  */
 export function getRequiredFieldsOrThrow(keys, body) {
     const requiredFields = keys.reduce((acc, curr) => {
@@ -30,6 +34,13 @@ export function getRequiredFieldsOrThrow(keys, body) {
     return requiredFields
 }
 
+/**
+ * closure that takes a mongoose model and returns a handler meant to be used in router.param()
+ * handler: route parameter in 'id' is used to query the model for that id 
+ * 
+ * e.g. for User model, param '/:user_id' will add req.user to request object if user_id is valid
+ * 
+ */
 export function attatchDocumentToReqById(model) {
     return async (req, res, next, id) => {
         try {

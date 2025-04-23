@@ -210,7 +210,7 @@ const projectSchema = new Schema({
             return this.where({company: companyId})
         },
         byMemberId: function (memberId) {
-            return this.wheere({ members: memberId })
+            return this.where({ members: memberId })
         }
     }
 })
@@ -261,7 +261,7 @@ projectSchema.pre('findOneAndDelete', async function(next) {
         const filter = { project: id } 
         const models_with_fk = [Blueprint, Task, Report]
         
-        await Promise.all(models_with_fk.map(e => e.deleteMany(filter)))
+        await Promise.all(models_with_fk.map(async e => await e.deleteMany(filter)))
         next()
     }
 })
@@ -270,12 +270,12 @@ projectSchema.pre('findOneAndDelete', async function(next) {
 projectSchema.pre('deleteMany', async function(next) {
     const docs_to_delete = await this.model.find(this.getQuery())
     const models_with_fk = [Blueprint, Task, Report]
-    const ids = docs_to_delete.map(({_id}) => _id)
+    const ids = docs_to_delete.map(({ _id }) => _id)
     // implicit $in in this filter
     const filter = { project: ids }
     
     // implicit $in in mongoose for queries
-    await Promise.all(models_with_fk.map(e => e.deleteMany(filter)))
+    await Promise.all(models_with_fk.map( async e => await e.deleteMany(filter) ))
     next()
     
 })
@@ -296,17 +296,15 @@ export const Project = model('Project', projectSchema);
 companySchema.pre('findOneAndDelete', async function(next) {
     const doc_to_delete = await this.model
         .findOne(this.getQuery())
-        .populate('owner')
     if (!doc_to_delete) {
         return next(new NotFoundError('Company not found'))
     }
-    if (!doc_to_delete.owner) {
-        return next(new NotFoundError('Owner for queried company not found'))
-    }
+    const { _id: companyId } = doc_to_delete
     // delete projects associates with this company, deleteMany is already castcaded for projects 
-    await Project.find().byCompanyId(doc_to_delete._id).deleteMany()
-    // finally, delete owner associated with this company
-    await User.findOneAndDelete({_id: doc_to_delete.owner._id})
+    await Project.deleteMany({ company: companyId })
+    // d
+    // finally, delete all users associated with this company, including owner
+    await User.deleteMany({ company: companyId })
     next()
 })
 
@@ -332,6 +330,7 @@ export const Company = model('Company', companySchema)
  *          * can only be called by 'field manager' that is a  member of this project
  *          * only 'description', 'status', 'members', 'budget' are updatabalse
  *          * if updating members, ensure that each member in the request is not an owner
+ *          * figure out how to add
  *      * DELETE /projects/:project_id 
  *          * deletes a singular project
  *          * must be called by a 'field manager' that is a member of this project
@@ -340,41 +339,51 @@ export const Company = model('Company', companySchema)
  *      
  *      * GET /users
  *          * get all users for a company
- *          * only owner can call this
+ *          * any user part of the same company can do this
+ *          * only return non-sensitive details (_id, username, firstname, lastname)
+ *          * maybe support query params i.e. find by username
  *      * POST /users
  *          * create a user
  *          * only owner can call this
  *          * only able to create a 'non-owner'
  *          * automatically adds user to their company
- *          * for creating an 'owner' see POST /companies
+ *          * for creating an 'owner' see POST /company
  *      * PUT /users
  *          * update a user
  *          * only user that made the request can call this 
  *          * can only update their 'password', 'firstname' or 'lastname', NOT projects, username, nor role
  * 
- *      * DELETE /users/:user_id
+ * 
+ *      * GET /users/:target_user_id
+ *          * gets a specific user
+ *          * any user part of the same company as the target can do this
+ * 
+ *      * DELETE /users/:target_user_id
  *          * only owner can call this
  *          * onwer cannot delete oneself
  *          * owner can only delete users belonging to their company
- *          * for deleting an owner, see DELETE /companies/:company_id
+ *          * for deleting an owner, see DELETE /company
+ *          * remove user from all projects they are members of
  * 
  * 
  * 
- *      * POST /companies
+ *      * POST /company
  *          * creates both a company and an owner
  *          * unprotected route
  *          * make sure to validate all fields for both 
  *              company and user before creating them in DB
  *          * crate company first, then user
- * 
- *      * PUT /companies/:company_id
+ *      * GET /company
+ *          * gets company details of the company
+ *          * only users of a company can call this
+ *      * PUT /company
  *          * only owner can do this
  *          * only 'location' and 'industry' can be changed
- * 
- *      * DELETE /companies/:company_id
+ *      * DELETE /company
  *          * only owner can do this
  *          * must castcade deletes for: users, projects, and all
  *               subtasks associated with those projects
+ *          * deletes owners account as well
  * 
  *          
  * 

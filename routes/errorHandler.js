@@ -10,7 +10,7 @@ const errorHandler = (err, req, res, next) => {
     
     let status
     switch (err.name) {
-        // thrown by mongoose and joi
+        // thrown by mongoose and our own code
         case 'ValidationError':
             status = 400
             break

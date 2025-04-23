@@ -38,17 +38,45 @@ import { Project, User } from "../model/model.js";
 //     }
 //   };
 
-export async function authorizeRoles (...roles) {
+function authorizeRoles (...roles) {
     return (req, res, next) => {
-      if (!req.requestor) {
-        throw new AuthorizationError('User making request is not authorized');
-      }
-      
-      if (!roles.includes(req.requestor.role)) {
-        throw new PermissionError(`Resource denied for role: ${req.requestor.role}`)
+      if (!roles.includes(req.user.role)) {
+        throw new PermissionError(`Resource denied for role: ${req.user.role}`)
       }
       
       next()
     }
+}
+
+/**
+ * replacement for using cookies in production. see authenticate() in this file for example
+ * real implementation with cookie-parser and jsonwebtoken
+ */
+async function dummyAuthentication (req, res, next) {
+    try {
+        // CHANGE THIS VALUE TO SIMULATE REQUESTS MADE BY A CERTAIN USER
+        // FOR PROTECTED ROUTES
+        const dummyId = ''
+        const user = User.findById(dummyId)
+        if (!user) {
+            throw new NotFoundError('User of this request was not found')
+        }
+        req.user = user
+    } catch(err) {
+        next(err)
+    }
+}
+
+/**
+ * takes roles and creates fake authentication middleware. when passed into
+ * express middleware as an array of route handlers, express calls each route handler in succession
+ * and can chain with spread operator
+ *
+ * i.e. router.route("/").get([handler1, handler2], handler3)
+ *  1,2,3 get called in succession if 'next()' is used in each one. if 'return res.status' is used in any of them
+ *  then the request returns early
+ */
+export const dummyRouteAuth = async (...roles) => {
+    return [dummyAuthentication, authorizeRoles(...roles)]
 }
 

@@ -11,7 +11,7 @@ import { Project } from "../model/model.js"
  */
 export const attatchProjectToReq = attatchDocumentToReqById(Project)
 
-export const createProject = async (req, res, next) => {
+export const createProjectHandler = async (req, res, next) => {
     try {
         const projectRequiredFields =
             [ 'title'
