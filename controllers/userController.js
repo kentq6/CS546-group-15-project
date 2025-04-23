@@ -1,20 +1,10 @@
 import { NotFoundError } from "../error/error.js"
+import { attatchDocumentToReqById } from "../helpers.js"
 import { Project, User } from "../model/model.js"
 
 
 
-export const attatchUserToReq = async (req, res, next, id) => {
-    try {
-        const user = await User.findById(id)
-        if (!user) {
-            throw new NotFoundError('User not found')
-        }
-        req.user = user
-        next()
-    } catch (err) {
-        next(err)
-    }
-}
+export const attatchUserToReq = attatchDocumentToReqById(User)
 
 export const getProjectsByUser = async (req, res, next) => {
     try {

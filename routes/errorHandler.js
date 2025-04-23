@@ -1,24 +1,7 @@
-import { Router } from "express";
-import { attatchProjectToReq, createProject, getProjectById, getProjectsByUser } from "../controllers/projectController";
-
-
-const router = Router();
-
-// param is parsed for all routes on this router that contain it
-router.param('project_id', attatchProjectToReq)
-
-// use multiple route handlers in succession with next()
-router.route('/')
-    .post(createProject)
-
-// TODO: add ability to add multiple users to a project
-router.route('/:project_id')
-    .get(getProjectById)
-
 
 // custom express error route handler - if any error/promise-reject is thrown in the succession of normal handlers
 // this gets called
-router.use((err, req, res, next) => {
+const errorHandler = (err, req, res, next) => {
     if (res.headersSent) {
         return next(err)
     }
@@ -37,6 +20,10 @@ router.use((err, req, res, next) => {
             break
         // thrown by our own code
         case 'PermissionError':
+            status = 403
+            break
+        // thrown by our own code
+        case 'AuthenticationError':
             status = 401
             break
         // thrown by owr own code, wrapper for error thrown by mongodb driver, search 'MongoServerError' in model/model.js 
@@ -48,8 +35,6 @@ router.use((err, req, res, next) => {
     }
 
     return res.status(status).json({status: 'error', message: err.message })
-})
+}
 
-
-
-
+export default errorHandler

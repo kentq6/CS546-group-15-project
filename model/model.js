@@ -1,5 +1,5 @@
 import mongoose, { model } from 'mongoose'
-import { DuplicateKeyError, NotFoundError } from '../error/error';
+import { DuplicateKeyError, NotFoundError } from '../error/error.js';
 
 const { Schema } = mongoose;
 
@@ -22,7 +22,7 @@ const userSchema = new Schema({
         required: true,
         match: [/^[A-Za-z0-9!?]{8,30}$/, 'Incorrect password format']
     },
-    firstname: {        // not updatable
+    firstname: {        // updatable
         type: String,
         required: true,
         match: [/^[A-Za-z]{1,30}$/, 'Incorrect firstname format'],
@@ -30,7 +30,7 @@ const userSchema = new Schema({
         lowercase: true,                                // setter calls toLowerCase() before the match validator
         get: capitalizeWords                            // getter capitalizes words
     },
-    lastname: {         // not updatable
+    lastname: {         // updatable
         type: String,
         required: true,
         match: [/[A-Za-z]{1,30}/, 'Incorrect lastname format'],
@@ -319,6 +319,8 @@ export const Company = model('Company', companySchema)
  *      * POST /projects
  *          * 'field manager' creates a new project
  *          * ensure that only 'field manager' call this. 
+ *          * ensure that no user that a 'field manager' is adding to a project
+ *              has the owner role
  *          * automatically add 'field manager' to the project 
  *              (get 'field manager' id from param, append it to the list of initial members, then addToSet)
  * 
@@ -329,6 +331,7 @@ export const Company = model('Company', companySchema)
  *          * updates a singular project
  *          * can only be called by 'field manager' that is a  member of this project
  *          * only 'description', 'status', 'members', 'budget' are updatabalse
+ *          * if updating members, ensure that each member in the request is not an owner
  *      * DELETE /projects/:project_id 
  *          * deletes a singular project
  *          * must be called by a 'field manager' that is a member of this project
@@ -336,7 +339,7 @@ export const Company = model('Company', companySchema)
  * 
  *      
  *      * GET /users
- *          * get all users
+ *          * get all users for a company
  *          * only owner can call this
  *      * POST /users
  *          * create a user
@@ -372,6 +375,7 @@ export const Company = model('Company', companySchema)
  *          * only owner can do this
  *          * must castcade deletes for: users, projects, and all
  *               subtasks associated with those projects
+ * 
  *          
  * 
  * 

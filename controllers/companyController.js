@@ -1,103 +1,69 @@
-/* 
 import mongoose from 'mongoose'
-import { Company, User } from '../model/model.js';
+import { attatchDocumentToReqById, getNonRequiredFields, getRequiredFieldsOrThrow } from '../helpers.js'
+import { Company, User } from '../model/model.js'
+import { NotFoundError } from '../error/error.js'
 
+export const attatchCompanyToReq = attatchDocumentToReqById(Company)
 
-export async function createOwnerAndCompany(req, res, next) {
-    const { username, password, firstname, lastname } = req.body
-    const { title, location, industry } = req.body;
-    const session = await mongoose.startSession();
+export async function createCompanyAndOwner (req, res, next) {
     try {
-        session.startTransaction();
-        const new_owner = await User.create(
-            [{ username, password, firstname, lastname, role: 'Owner' }],
-            { session }
-        );
-        await Company.create(
-            [{ title, location, industry, owner: new_owner._id }], 
-            { session }
-        );
-        await session.commitTransaction();
-        res.status(201);
-    } catch (err) {
-        await session.abortTransaction();
-        next(err);
-    } finally {
-        await session.endSession();
+        const ownerRequiredFields = 
+            [ 'username'
+            , 'password'
+            , 'firstname'
+            , 'lastname'
+            ]
+
+        const companyRequiredFields =
+            [ 'title'
+            , 'location'
+            , 'industry'
+            ]
+
+        const ownerFields = getRequiredFieldsOrThrow(ownerRequiredFields, req.body)
+        const companyFields = getRequiredFieldsOrThrow(companyRequiredFields, req.body)
+        const companyId = new mongoose.Types.ObjectId
+
+        const owner = await User.create({
+            ...ownerFields,
+            company: companyId,
+            role: 'Owner'
+        })
+        try {
+            const company = await Company.create({
+                ...companyFields,
+                _id: companyId,
+                owner: owner._id,
+            })
+
+            return res.status(201).json({owner, company})
+
+        } catch(companyErr) {
+            await User.findByIdAndDelete(owner._id)
+            throw companyErr
+        } 
+    } catch(err) {
+        next(err)
     }
 }
 
-export async function createAdminFromOwner(req, res, next) {
-    const ownerId = req.userId;
-    const {username, password} = req.body;
-    const session = await mongoose.startSession();
+// assumes company has already been attatched to request.
+// 
+export async function updateCompanyDetails(req, res, next) {
     try {
-        session.startTransaction();
-        const owner = await User.findById(ownerId).session(session).exec();
-        if (!owner) 
-            throw new Error('No user found');
-        if (owner.role !== 'Owner')
-            throw new Error('User not an owner; unauthorized');
-        const new_admin = User.create(
-            [{ username, password, role: 'Admin' }], 
-            { session }
-        );
-        await Company.findOneAndUpdate(
-            { owner: owner._id }, 
-            { $addToSet: { employees: new_admin._id } },
-            { session }
-        );
-        await session.commitTransaction();
-        res.status(201);
-    } catch (err) {
-        await session.abortTransaction();
-        next(err);
-    } finally {
-        await session.endSession();
+        const updateFields = ['location', 'industry']
+        const updates = getNonRequiredFields(updateFields, req.body)
+
+        const company = await Company.findByIdAndUpdate(req.company._id, updates, {new: true})
+        if (!company) {
+            throw new NotFoundError('Company not found; no updates applied')
+        }
+        
+        return res.status(200).json(company)
+        
+    } catch(err) {
+        next(err)
     }
 }
-
-export async function createUnpriveledgedUserFromPriveledgedUser(req, res, next) {
-    const privUserId = req.userId;
-    const {username, password, role} = req.body;
-    const session = await mongoose.startSession();
-    try {
-        session.startTransaction();
-        const privUser = User.findById(privUserId).session(session).exec();
-        if (!privUser)
-            throw new Error('No user found');
-        if (privUser.role !== 'Owner' || privUser.role !== 'Admin')
-            throw new Error('User not a priveledged user; unauthorized');
-        if (role === 'Owner' || role === 'Admin')
-            throw new Error('Unauthorized attempt to create priveledged role');
-
-        const new_unpriv_user = User.create(
-            [{username, password, role }],
-            { session }
-        );
-        await Company.findOneAndUpdate(
-            {   $or: 
-                [   { owner: privUser._id },
-                    { employees: privUser._id }
-                ]
-            },
-            { $addToset: { employees: new_unpriv_user }},
-            { session }
-        );
-        await session.commitTransaction();
-        res.status(201);
-    } catch (err) {
-        await session.abortTransaction();
-        next(err);
-    } finally {
-        await session.endSession();
-    }
-}
-
-export async function getUser(req, res, next) {
-    const user = req.user
-}
-
-*/
 
 

@@ -1,4 +1,5 @@
 import { NotFoundError } from "../error/error.js"
+import { attatchDocumentToReqById, getRequiredFieldsOrThrow } from "../helpers.js"
 import { Project } from "../model/model.js"
 
 /**
@@ -8,23 +9,17 @@ import { Project } from "../model/model.js"
  * ensures the id references a valid project and attatches the document 
  * to the rest of the request for subsequent handlers to use
  */
-export const attatchProjectToReq = async (req, res, next, id) => {
-    try {
-        const project = await Project.findById(id)
-        if (!project) {
-            throw new NotFoundError('project not found')
-        }
-        req.project = project
-        next()
-    } catch(err) {
-        next(err)
-    }
-}
+export const attatchProjectToReq = attatchDocumentToReqById(Project)
 
 export const createProject = async (req, res, next) => {
     try {
-        const {title = null, description = null, budget = null} = req.body
-        const project = await Project.create({ title, description, budget })
+        const projectRequiredFields =
+            [ 'title'
+            , 'description'
+            , 'budget'
+            ]
+        const projectFields = getRequiredFieldsOrThrow(projectRequiredFields, req.body)
+        const project = await Project.create(projectFields)
         return res.status(201).json(project)
     } catch (err) {
         next(err)
