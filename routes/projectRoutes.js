@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { attatchProjectToReq, createProjectHandler, getProjectById } from "../controllers/projectController";
+import { attatchProjectToReq, createProjectHandler, getProjectByIdHandler, getProjectsHandler } from "../controllers/projectController.js";
+import { authorizeAllRoles, authorizeProjectMemberOrOwner, authorizeRoles, dummyAuthenticate } from "../middleware/auth.js";
 
 
 const router = Router();
@@ -9,11 +10,24 @@ router.param('project_id', attatchProjectToReq)
 
 // use multiple route handlers in succession with next()
 router.route('/')
-    .post(createProjectHandler)
+    .get
+        ( dummyAuthenticate
+        , authorizeAllRoles
+        , getProjectsHandler
+        )
+    .post
+        ( dummyAuthenticate
+        , authorizeRoles('Field Manager')
+        , createProjectHandler
+        )
 
-// TODO: add ability to add multiple users to a project
 router.route('/:project_id')
-    .get(getProjectById)
+    .get
+        ( dummyAuthenticate
+        , authorizeAllRoles
+        , authorizeProjectMemberOrOwner
+        , getProjectByIdHandler
+        )
 
 
 
