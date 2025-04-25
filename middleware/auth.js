@@ -38,9 +38,17 @@ import { Project, User } from "../model/model.js";
 //     }
 //   };
 
+const isUserAnOwner = (user) => user.role === 'Owner'
+
+const isUserAProjectMember = (user, project) => project.members.includes(user._id)
+
+const isUserAProjectMemberOrOwner = (user, project) => 
+    isUserAProjectMember(user, project) || isUserAnOwner(user)
 
 
-
+/**
+ * Closure that returns an express handler validating that user has a role in 'roles'
+ */
 export function authorizeRoles (...roles) {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
@@ -51,51 +59,49 @@ export function authorizeRoles (...roles) {
 }
 
 /**
- * no-op function, user should have a valid role. if not, throw
+ * No-op function, user should have a valid role. if not, throw
 */
 export const authorizeAllRoles = authorizeRoles('Owner', 'Field Manager', 'Engineer')
 
-
-
-const isUserAnOwner = (user) => user.role === 'Owner'
-
-const isUserAProjectMember = (user, project) => project.members.includes(user._id)
-
-
-// assumes project is already attatched to request (via req.param("/project_id"))
-// validates that user making the request is a project member
+/**
+ * Authorizes that user making the request is a project member
+ * 
+ * Assumes project is already attatched to request (via req.param('project_id'))
+ */
 export function authorizeProjectMember (req, res, next) {
-    try {
-        if (!isUserAProjectMember(req.user, req.project)) {
-            throw new PermissionError('User is not a project member')
-        }
-        next()
-    } catch(err) {
-        next(err)
+    if (!isUserAProjectMember(req.user, req.project)) {
+        throw new PermissionError('User is not a project member')
     }
-}
-
-export function authorizeProjectMemberOrOwner (req, res, next) {
-    try {
-        if (!isUserAProjectMember(req.user, req.project) && !isUserAnOwner(req.user)) {
-            throw new PermissionError('User is not an owner nor project member')
-        }
-        next()
-    } catch(err) {
-        next(err)
-    }
+    next()
 }
 
 /**
- * replacement for using cookies in production. see authenticate() in this file for example
+ * Authorizes user making the request as an owner or a member of the project
+ * 
+ * Assumes user and project are already attatched to the request
+ */
+export function authorizeProjectMemberOrOwner (req, res, next) {
+    if (!isUserAProjectMemberOrOwner(req.user, req.project)) {
+        throw new PermissionError('User is not an owner nor project member')
+    }
+    next() 
+}
+
+/**
+ * Dummy method for authenticating the user making the request. Attatches user to the request.
+ *  Change 'dummyId' to simulate 
+ * that a request is being made by a certain user. 
+ * 
+ * Replacement for using cookies in production. See authenticate() in this file for example
  * real implementation with cookie-parser and jsonwebtoken
+ * 
  */
 export async function dummyAuthenticate (req, res, next) {
     try {
         // CHANGE THIS VALUE TO SIMULATE REQUESTS MADE BY A CERTAIN USER
         // FOR PROTECTED ROUTES
         const dummyId = ''
-        const user = User.findById(dummyId)
+        const user = await User.findById(dummyId)
         if (!user) {
             throw new NotFoundError('User of this request was not found')
         }

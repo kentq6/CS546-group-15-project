@@ -1,13 +1,16 @@
 import { NotFoundError } from "../error/error.js"
-import { attatchDocumentToReqById } from "../helpers.js"
-import { Project, User } from "../model/model.js"
+import { User } from "../model/model.js"
 
 
-
-export async function attatchUserToReq (req, res, next) {
+/**
+ * Attatches target user to request 
+ * 
+ * meant to be used in router.param('target_user_id')
+ */
+export async function attatchTargetUserToReq (req, res, next) {
     try {
         const targetUser = await User.findById(id)
-        if (!doc) {
+        if (!targetUser) {
             throw new NotFoundError('User not found')
         }
         req.targetUser = targetUser
@@ -17,7 +20,7 @@ export async function attatchUserToReq (req, res, next) {
     }      
 }
 
-export async function getAllUsersHandler(req, res, next) {
+export async function getAllUsersHandler (req, res, next) {
     try {
 
     } catch(err) {

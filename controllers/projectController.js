@@ -11,7 +11,7 @@ import { Project } from "../model/model.js"
 export const attatchProjectToReq = attatchDocumentToReqById(Project)
 
 /**
- * creates a new project from fields provided in the request body
+ * Creates a new project from fields provided in the request body
  */
 export async function createProjectHandler (req, res, next) {
     try {
@@ -23,30 +23,30 @@ export async function createProjectHandler (req, res, next) {
         const projectFields = getRequiredFieldsOrThrow(projectRequiredFields, req.body)
         const project = await Project.create(projectFields)
         return res.status(201).json(project)
-    } catch (err) {
+    } catch(err) {
         next(err)
     }
 }
 
 /**
- * gets one project by id passed in the request
+ * Gets one project by id passed in the request
  * 
- * assumes project has already been attatched to request
+ * Assumes project has already been attatched to request
  */
-export async function getProjectByIdHandler(req, res, next) {
+export function getProjectByIdHandler(req, res, next) {
     try {
         return res.status(200).json(req.project);
-    } catch (err) {
+    } catch(err) {
         next(err)
     }
 }
 
 /**
- * gets all projects based on a users role
+ * Gets all projects based on a users role
  * 
- * assumes user has been attatched to request
+ * Assumes user has been attatched to request
  */
-export async function getProjectsHandler(req, res, next) {
+export async function getProjectsHandler (req, res, next) {
     try {
         const user = req.user
         // get all projects an engineer or field manager is a part of

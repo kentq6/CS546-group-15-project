@@ -2,12 +2,14 @@
 // custom express error route handler - if any error/promise-reject is thrown in the succession of normal handlers
 // this gets called
 const errorHandler = (err, req, res, next) => {
+    // request response cycle has already ended, pass error to express's default handler
     if (res.headersSent) {
         return next(err)
     }
 
     console.error(err)
     
+    // determine the status code based on the error thrown by our handlers
     let status
     switch (err.name) {
         // thrown by mongoose and our own code
