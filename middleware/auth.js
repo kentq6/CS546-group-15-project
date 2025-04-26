@@ -66,7 +66,7 @@ export const authorizeAllRoles = authorizeRoles('Owner', 'Field Manager', 'Engin
 /**
  * Authorizes that user making the request is a project member
  * 
- * Assumes project is already attatched to request (via req.param('project_id'))
+ * Assumes user and project is already attatched to request via req.param('project_id')
  */
 export function authorizeProjectMember (req, res, next) {
     if (!isUserAProjectMember(req.user, req.project)) {
@@ -100,7 +100,7 @@ export async function dummyAuthenticate (req, res, next) {
     try {
         // CHANGE THIS VALUE TO SIMULATE REQUESTS MADE BY A CERTAIN USER
         // FOR PROTECTED ROUTES
-        const dummyId = ''
+        const dummyId = '680d5023f535ce3b7a18143d'
         const user = await User.findById(dummyId)
         if (!user) {
             throw new NotFoundError('User of this request was not found')
