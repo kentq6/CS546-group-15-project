@@ -1,4 +1,4 @@
-import { AuthorizationError, NotFoundError } from "../error/error.js";
+import { AuthorizationError, NotFoundError, PermissionError } from "../error/error.js";
 import { Project, User } from "../model/model.js";
 
 
@@ -111,3 +111,7 @@ export async function dummyAuthenticate (req, res, next) {
         next(err)
     }
 }
+
+export const authenticateAndAuthorizeRoles = (...roles) => [dummyAuthenticate, authorizeRoles(...roles)]
+
+export const authenticateAndAuthorizeAllRoles = [dummyAuthenticate, authorizeAllRoles]

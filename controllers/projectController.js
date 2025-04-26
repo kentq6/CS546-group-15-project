@@ -12,6 +12,8 @@ export const attatchProjectToReq = attatchDocumentToReqById(Project)
 
 /**
  * Creates a new project from fields provided in the request body
+ * 
+ * assumes user has been attatched to request
  */
 export async function createProjectHandler (req, res, next) {
     try {
@@ -21,7 +23,11 @@ export async function createProjectHandler (req, res, next) {
             , 'budget'
             ]
         const projectFields = getRequiredFieldsOrThrow(projectRequiredFields, req.body)
-        const project = await Project.create(projectFields)
+        const project = await Project.create({
+            ...projectFields,
+            company: req.user.company,
+            members: [req.user._id]
+        })
         return res.status(201).json(project)
     } catch(err) {
         next(err)

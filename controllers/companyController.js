@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { attatchDocumentToReqById, getNonRequiredFields, getRequiredFieldsOrThrow } from '../helpers.js'
+import { getNonRequiredFields, getRequiredFieldsOrThrow } from '../helpers.js'
 import { Company, User } from '../model/model.js'
 import { NotFoundError } from '../error/error.js'
 
@@ -68,7 +68,7 @@ export async function updateCompanyDetailsHandler (req, res, next) {
     try {
         const updateFields = ['location', 'industry']
         const updates = getNonRequiredFields(updateFields, req.body)
-        const updatedCompany = await Company.findByIdAndUpdate(req.user.company, updates, {new: true})
+        const updatedCompany = await Company.findByIdAndUpdate(req.user.company, updates, {runValidators: true, new: true})
         if (!updatedCompany) {
             throw new NotFoundError('Company not found; no updates applied')
         }

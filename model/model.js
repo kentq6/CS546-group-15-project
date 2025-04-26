@@ -80,7 +80,7 @@ const companySchema = new Schema({
     industry: {         // updatable
         type: String,
         required: true,
-        match: [/^[A-Za-z\s]{2,30}$/],
+        match: [/^[A-Za-z\s]{2,30}$/, 'Incorrect industry format'],
         trim: true,
         lowercase: true,
         get: capitalizeWords

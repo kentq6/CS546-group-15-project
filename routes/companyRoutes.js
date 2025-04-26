@@ -1,26 +1,35 @@
 import { Router } from 'express'
-import {createCompanyAndOwnerHandler, deleteCompanyHandler, getCompanyHandler, updateCompanyDetailsHandler } from '../controllers/companyController.js'
-import { authorizeAllRoles, authorizeRoles, dummyAuthenticate } from '../middleware/auth.js'
+import 
+    { createCompanyAndOwnerHandler
+    , deleteCompanyHandler
+    , getCompanyHandler
+    , updateCompanyDetailsHandler
+    } 
+    from '../controllers/companyController.js'
+
+import 
+    { authenticateAndAuthorizeAllRoles
+    , authenticateAndAuthorizeRoles
+    }
+    from '../middleware/auth.js'
 
 const router = Router()
 
 
 router.route('/')
     .get
-        ( dummyAuthenticate
-        , authorizeAllRoles
+        ( authenticateAndAuthorizeAllRoles
         , getCompanyHandler
         )
     // ensure the post is an unprotected route
-    .post(createCompanyAndOwnerHandler)
+    .post
+        (createCompanyAndOwnerHandler)
     .put
-        ( dummyAuthenticate
-        , authorizeRoles('Owner')
+        ( authenticateAndAuthorizeRoles('Owner')
         , updateCompanyDetailsHandler
         )
     .delete
-        ( dummyAuthenticate
-        , authorizeRoles('Owner')
+        ( authenticateAndAuthorizeRoles('Owner')
         , deleteCompanyHandler
         )
     
