@@ -1,5 +1,5 @@
 import { NotFoundError, PermissionError } from '../error/error.js'
-import { getNonRequiredFields, getRequiredFieldsOrThrow } from '../helpers.js'
+import { getNonRequiredFields, getRequiredFieldsOrThrow, isUserAnOwner } from '../helpers.js'
 import { User } from '../model/model.js'
 
 
@@ -56,9 +56,9 @@ export async function createUserHandler (req, res, next) {
             company: req.user.company
         })
         // mongoose validatinon
-        user.validateSync()
+        await user.validate()
 
-        if (user.role === 'Owner') {
+        if (isUserAnOwner(user)) {
             throw new PermissionError('Tried to create a user with \'Owner\' role')
         }
 

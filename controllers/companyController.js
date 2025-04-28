@@ -19,21 +19,21 @@ export async function getCompanyHandler (req, res, next) {
 
 export async function createCompanyAndOwnerHandler (req, res, next) {
     try {
-        const ownerRequiredFields = 
+        const ownerFieldNames = 
             [ 'username'
             , 'password'
             , 'firstname'
             , 'lastname'
             ]
 
-        const companyRequiredFields =
+        const companyFieldNames =
             [ 'title'
             , 'location'
             , 'industry'
             ]
         // validate that these fields exist within the request body
-        const ownerFields = getRequiredFieldsOrThrow(ownerRequiredFields, req.body)
-        const companyFields = getRequiredFieldsOrThrow(companyRequiredFields, req.body)
+        const ownerFields = getRequiredFieldsOrThrow(ownerFieldNames, req.body)
+        const companyFields = getRequiredFieldsOrThrow(companyFieldNames, req.body)
         const companyId = new mongoose.Types.ObjectId()
 
         // create an owner, if create() throws, nbd - we havent created a company yet

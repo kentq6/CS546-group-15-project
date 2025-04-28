@@ -31,3 +31,10 @@ export class AuthorizationError extends Error {
         this.name = 'AuthorizationError'
     }
 }
+
+export class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ValidationError'
+    }
+}

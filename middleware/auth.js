@@ -1,4 +1,5 @@
 import { AuthorizationError, NotFoundError, PermissionError } from "../error/error.js";
+import { isUserAProjectMember, isUserAProjectMemberOrOwner } from "../helpers.js";
 import { Project, User } from "../model/model.js";
 
 
@@ -37,13 +38,6 @@ import { Project, User } from "../model/model.js";
 //       next(error);
 //     }
 //   };
-
-const isUserAnOwner = (user) => user.role === 'Owner'
-
-const isUserAProjectMember = (user, project) => project.members.includes(user._id)
-
-const isUserAProjectMemberOrOwner = (user, project) => 
-    isUserAProjectMember(user, project) || isUserAnOwner(user)
 
 
 /**
@@ -100,7 +94,7 @@ export async function dummyAuthenticate (req, res, next) {
     try {
         // CHANGE THIS VALUE TO SIMULATE REQUESTS MADE BY A CERTAIN USER
         // FOR PROTECTED ROUTES
-        const dummyId = '680d5023f535ce3b7a18143d'
+        const dummyId = '680fa482817ac4f3f0f9211a'
         const user = await User.findById(dummyId)
         if (!user) {
             throw new NotFoundError('User of this request was not found')

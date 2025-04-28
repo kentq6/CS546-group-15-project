@@ -5,12 +5,14 @@ import
     , createProjectHandler
     , getProjectByIdHandler
     , getProjectsHandler
+    , updateProjectHandler
     } 
     from '../controllers/projectController.js'
 
 import 
     { authenticateAndAuthorizeAllRoles
     , authenticateAndAuthorizeRoles
+    , authorizeProjectMember
     , authorizeProjectMemberOrOwner
     } 
     from '../middleware/auth.js'
@@ -38,6 +40,18 @@ router.route('/:project_id')
         , authorizeProjectMemberOrOwner
         , getProjectByIdHandler
         )
+    .put
+        ( authenticateAndAuthorizeRoles('Field Manager')
+        , authorizeProjectMember
+        , updateProjectHandler
+        )
+    .delete
+        ( authenticateAndAuthorizeRoles('Field Manager')
+        , authorizeProjectMember
+        )
+
+export default router
+
 
 
 
