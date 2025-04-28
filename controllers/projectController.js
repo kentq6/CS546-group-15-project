@@ -105,20 +105,8 @@ export async function updateProjectHandler(req, res, next) {
             // get member details of the members update
             const newMembers = await Promise.all(docOfUpdate.members.map(async e => await User.findById(e)))
 
-            // ensure no members in the update are duplicates
-            if (!allUnique(newMembers)) {
-                throw new ValidationError('Update to project members contians a duplicate')
-            }
-
-            // ensure no field managers are being removed from  a project
-            const oldFieldManagers = oldMembers.filter(isUserAFieldManager)
-            const newFieldManagers = newMembers.filter(isUserAFieldManager)
-            if (!areDocumentsASubset(oldFieldManagers, newFieldManagers)) {
-                throw new PermissionError('Field Managers are not removable from a project')
-            }
-
             for (const member of newMembers) {
-                // redundant
+                // ensure each member in the update is "real"
                 if (!member) {
                     throw new NotFoundError('Member not found')
                 }
@@ -131,6 +119,19 @@ export async function updateProjectHandler(req, res, next) {
                     throw new PermissionError('Member being added has the Owner role')
                 }
             }
+
+            // ensure no members in the update are duplicates
+            if (!allUnique(newMembers)) {
+                throw new ValidationError('Update to project members contians a duplicate')
+            }
+
+            // ensure no field managers are being removed from  a project
+            const oldFieldManagers = oldMembers.filter(isUserAFieldManager)
+            const newFieldManagers = newMembers.filter(isUserAFieldManager)
+            if (!areDocumentsASubset(oldFieldManagers, newFieldManagers)) {
+                throw new PermissionError('Field Managers are not removable from a project')
+            }
+
         }
 
         const newProject = await Project.findByIdAndUpdate(req.project._id, updates, {runValidators: true, new: true})

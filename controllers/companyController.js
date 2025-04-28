@@ -92,7 +92,7 @@ export async function updateCompanyDetailsHandler (req, res, next) {
  */
 export async function deleteCompanyHandler(req, res, next) {
     try {
-        const deletedCompany = await Company.findOneAndDelete({_id: req.user.company})
+        const deletedCompany = await Company.findByIdAndDelete(req.user.company)
         if (!deletedCompany) {
             throw new NotFoundError('Company not found; no delete applied')
         }

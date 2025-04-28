@@ -131,7 +131,7 @@ export async function deleteTargetUserHandler (req, res, next) {
         const deletedUser = await User.findByIdAndDelete(req.targetUser._id)
         
         if (!deletedUser) {
-            throw new NotFoundError('Target user not found; no delete appliied')
+            throw new NotFoundError('Target user not found; no delete applied')
         }
 
         return res.status(200).json(deletedUser)
