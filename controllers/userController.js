@@ -139,3 +139,35 @@ export async function deleteTargetUserHandler (req, res, next) {
         next(err)
     }
 }
+
+/**
+ * Logs in a user with username and password provided in request body
+ * 
+ * Assumes user and targetUser have already been attatched to request
+ */
+
+export async function loginHandler(req, res, next) {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.render('login', {
+                title: 'Login',
+                error: 'Invalid Username or Password, try again',
+            });
+        }
+
+        if (user.password !== password) {
+            return res.render('login', {
+                title: 'Login',
+                error: 'Invalid Username or Password, try again',
+            });
+        }
+
+    } catch(err) {
+        return res.render('login', {
+            title: 'Login',
+            error: 'Invalid Username or Password, try again',
+        });
+    }
+}

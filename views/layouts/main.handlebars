@@ -3,16 +3,23 @@
 <head>
   <meta charset="utf-8">
   <title>{{title}}</title>
-  <link rel="stylesheet" href="/public/main.css">
+  <link rel="stylesheet" href="css/main.css">
 </head>
-<body>
-  <nav>
-  <div style="display: flex; gap: 20px;">
-    <a href="/landing">Home</a>
-    <a href="/login">Login</a>
-    <a href="/signup">Register A Company</a>
-  </div>
-</nav>
+<body class="{{#if landingPage}}landing-page{{/if}}">
+  <nav class="navbar">
+    <div class="header-left">
+      <a href="/landing" class="brand-container">
+        <img src="/images/Go-removebg-preview.png" alt="goProject Logo" class="brand-logo">
+        <span class="brand-text">GoProject</span>
+      </a>
+    </div>
+    <div class="nav-menu">
+      <a href="/login" class="nav-link">Login</a>
+      <a href="/signup" class="nav-link">Register A Company</a>
+    </div>
+  </nav>
+
   {{{body}}}
+
 </body>
 </html>
