@@ -4,13 +4,22 @@ const router = Router()
 
 router
     .get('/landing', (req, res) => {
-        return res.render('landing')
+        res.render('landing', {
+            title: 'Welcome',
+            landingPage: true
+        });
     })
     .get('/login', (req, res) => {
-        return res.render('login')
+        res.render('login', {
+            title: 'Login',
+            landingPage: false
+        });
     })
     .get('/signup', (req, res) => {
-        return res.render('signup')
+        res.render('signup', {
+            title: 'Sign Up',
+            landingPage: false
+        });
     })
     .get('/', (req, res) => {
         return res.redirect('/landing')
