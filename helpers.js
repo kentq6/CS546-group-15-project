@@ -25,7 +25,6 @@ export function getNonRequiredFields(keys, body) {
 /**
  * makes a smaller object from 'body' that from all keys in 'keys'
  * if a key in 'keys' is not found in 'body' the function throws 
- * 
  */
 export function getRequiredFieldsOrThrow(keys, body) {
     if (!body) {
@@ -53,6 +52,32 @@ export function attatchDocumentToReqById(model) {
             const doc = await model.findById(id)
             if (!doc) {
                 throw new NotFoundError(`${model.modelName} not found`)
+            }
+            const lowerCaseOfModelName = model.modelName.toLowerCase()
+            req[lowerCaseOfModelName] = doc
+            next()
+        } catch(err) {
+            next(err)
+        }
+    }
+}
+
+/**
+ * Takes mongoose model and returns a handler meant to be used in router.param
+ * 
+ * Handler assumes project has been attatched to request. Validates that, if the document
+ *  in the request params was found, that it's 'project' field (ObjectId) matches the _id of 
+ *  the project attatched to the request
+ */
+export function attatchDocToReqByIdCheckProjectId(model) {
+    return async (req, res, next, id) => {
+        try {
+            const doc = await model.findById(id)
+            if (!doc) {
+                throw new NotFoundError(`${model.modelName} not found`)
+            }
+            if (!doc.project.equals(req.project._id)) {
+                throw new ValidationError(`${model.modelName} does not belong to the project in the request`)
             }
             const lowerCaseOfModelName = model.modelName.toLowerCase()
             req[lowerCaseOfModelName] = doc

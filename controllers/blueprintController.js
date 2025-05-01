@@ -1,23 +1,9 @@
 import { NotFoundError } from "../error/error.js"
-import { attatchDocumentToReqById, getNonRequiredFields, getRequiredFieldsOrThrow } from "../helpers.js"
+import { attatchDocToReqByIdCheckProjectId, getNonRequiredFields, getRequiredFieldsOrThrow } from "../helpers.js"
 import { Blueprint } from "../model/model.js"
 
 
-export const attatchBlueprintToReq = async (req, res, next, id) => {
-    try {
-        const blueprint = await Blueprint.findById(id)
-        if (!blueprint) {
-            throw new NotFoundError(`Blueprint not found`)
-        }
-        if (!blueprint.project.equals(req.project._id)) {
-            throw new ValidationError('Blueprint does not belong to this project')
-        }
-        req.blueprint = blueprint
-        next()
-    } catch(err) {
-        next(err)
-    }
-}
+export const attatchBlueprintToReq = attatchDocToReqByIdCheckProjectId(Blueprint)
 
 /**
  * Gets all blueprints for a particular project
