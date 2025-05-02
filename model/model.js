@@ -221,7 +221,7 @@ const top_level_shcemas = [userSchema, companySchema, projectSchema, blueprintSc
 top_level_shcemas.map(schema => {
     schema.post('save', function(error, doc, next) {
         if (error.name === 'MongoServerError' && error.code === 11000) {
-          next(new DuplicateKeyError('Duplicate key error; document with unique index already exists'))
+          next(new DuplicateKeyError(`Duplicate key error; document with unique index already exists: documentId: ${doc._id}`))
         } else {
           next()
         }

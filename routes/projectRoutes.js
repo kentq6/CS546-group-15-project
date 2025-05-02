@@ -16,8 +16,10 @@ import
     , authorizeProjectMemberOrOwner
     } 
     from '../middleware/auth.js'
+
 import blueprintRouter from './blueprintRoutes.js'
 
+import taskRouter from './taskRoutes.js'
 const router = Router();
 
 // param is parsed for all routes on this router that contain it
@@ -25,6 +27,7 @@ router.param('project_id', attatchProjectToReq)
 
 
 router.use('/:project_id/blueprints', blueprintRouter)
+router.use('/:project_id/:task_id', taskRouter)
 
 // use multiple route handlers in succession with next()
 router.route('/')
