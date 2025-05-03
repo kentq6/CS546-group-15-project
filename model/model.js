@@ -113,7 +113,8 @@ const common_fields = {
     },
     tags: [{            // updatable
         type: String,
-        match: [/^[A-Za-z0-9]{2,30}$/],
+        match: [/^[A-Za-z0-9]{2,30}$/, 'Incorrect tag format'],
+        minLength: 2,
         lowercase: true,
         trim: true
     }],

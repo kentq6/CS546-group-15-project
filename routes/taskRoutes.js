@@ -1,36 +1,38 @@
 import { Router } from "express"
- import { authenticateAndAuthorizeAllRoles, authenticateAndAuthorizeRoles, authorizeProjectMemberOrOwner } from "../middleware/auth.js"
+ import { authenticateAndAuthorizeAllRoles, authenticateAndAuthorizeRoles, authorizeProjectMember, authorizeProjectMemberOrOwner } from "../middleware/auth.js"
  import { attatchTaskToReq, createTaskHandler, deleteTaskHandler, getTaskByIdHandler, getTasksHandler, updateTaskHandler } from "../controllers/taskController.js"
+
+const router = Router()
  
+router.param('task_id', attatchTaskToReq)
  
- const router = Router()
+router.route('/')
+    .get
+        ( authenticateAndAuthorizeAllRoles
+        , authorizeProjectMemberOrOwner
+        , getTasksHandler
+        )
+    .post
+        ( authenticateAndAuthorizeRoles('Field Manager')
+        , authorizeProjectMember
+        , createTaskHandler
+        )
  
- router.param('task_id', attatchTaskToReq)
+router.route('/:task_id')
+    .get
+        ( authenticateAndAuthorizeAllRoles
+        , authorizeProjectMemberOrOwner
+        , getTaskByIdHandler
+        )
+    .put
+        ( authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
+        , authorizeProjectMember
+        , updateTaskHandler
+        )
+    .delete
+        ( authenticateAndAuthorizeRoles('Field Manager')
+        , authorizeProjectMember
+        , deleteTaskHandler
+        )
  
- router.route('/')
-     .get
-         ( authenticateAndAuthorizeAllRoles
-         , authorizeProjectMemberOrOwner
-         , getTasksHandler
-         )
-     .post
-         ( authenticateAndAuthorizeRoles('Field Manager')
-         , createTaskHandler
-         )
- 
- router.route('/:task_id')
-         .get
-             ( authenticateAndAuthorizeAllRoles
-             , authorizeProjectMemberOrOwner
-             , getTaskByIdHandler
-             )
-         .put
-             ( authenticateAndAuthorizeRoles('Engineer')
-             , updateTaskHandler
-             )
-         .delete
-             ( authenticateAndAuthorizeRoles('Field Manager')
-             , deleteTaskHandler
-             )
- 
- export default router
+export default router

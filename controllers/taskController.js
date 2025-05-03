@@ -39,15 +39,15 @@ export async function createTaskHandler (req, res, next) {
         const task = new Task(taskFields)
         await task.validate()
         
-        if (task.assignedTo) {
-            const userTaskIsAssignedTo = await User.findById(task.assignedTo)
-            if (!userTaskIsAssignedTo) {
-                throw new NotFoundError('User task is assigned to not found')
-            }
-            if (!req.project.members.includes(task.assignedTo)) {
-                throw new PermissionError('User assigned to task does not belong to the same project')
-            }
+        
+        const userTaskIsAssignedTo = await User.findById(task.assignedTo)
+        if (!userTaskIsAssignedTo) {
+            throw new NotFoundError('User task is assigned to not found')
         }
+        if (!req.project.members.includes(task.assignedTo)) {
+            throw new PermissionError('User assigned to task does not belong to the same project')
+        }
+        
 
         await task.save()
 
