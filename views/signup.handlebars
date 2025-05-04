@@ -1,0 +1,93 @@
+<div class="page-container">
+    <div class="page-header">
+        <h1>Create Your Company</h1>
+        <p>Join our platform and start managing your projects efficiently</p>
+    </div>
+
+    {{#if error}}
+    <div class="error-banner">
+        {{error}}
+    </div>
+    {{/if}}
+
+    <div class="progress-container">
+        <div class="progress-dot" id="companyTitleProgress"></div>
+        <div class="progress-dot" id="locationProgress"></div>
+        <div class="progress-dot" id="industryProgress"></div>
+        <div class="progress-dot" id="usernameProgress"></div>
+        <div class="progress-dot" id="passwordProgress"></div>
+        <div class="progress-dot" id="firstnameProgress"></div>
+        <div class="progress-dot" id="lastnameProgress"></div>
+        <div class="progress-track">
+            <div class="progress-fill" id="signupProgressFill"></div>
+        </div>
+    </div>
+
+    <form id="signupForm" action="/company" method="POST">
+        <div class="form-group">
+            <label for="companyTitle">Company Name</label>
+            <input type="text" id="companyTitle" name="title" required
+                pattern="^[A-Za-z0-9\s]{2,30}$"
+                title="Company name must be 2-30 characters long and contain only letters, numbers, and spaces"
+                value="{{formData.title}}">
+            <div class="error-message" id="companyTitleError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" required
+                pattern="^[A-Za-z\s\-']{2,30}, [A-Za-z\s\-']{2,30}$"
+                title="Location must be in format: City, Country"
+                value="{{formData.location}}">
+            <div class="error-message" id="locationError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="industry">Industry</label>
+            <input type="text" id="industry" name="industry" required
+                pattern="^[A-Za-z\s]{2,30}$"
+                title="Industry must be 2-30 characters long and contain only letters and spaces"
+                value="{{formData.industry}}">
+            <div class="error-message" id="industryError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required
+                pattern="^[a-z0-9_]{5,30}$"
+                title="Username must be 5-30 characters long and contain only lowercase letters, numbers, and underscores"
+                value="{{formData.username}}">
+            <div class="error-message" id="usernameError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required
+                pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,30}$"
+                title="Password must be 8-30 characters long and contain at least 1 capital letter, 1 number, and 1 special character (!@#$%^&*)">
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="firstname">First Name</label>
+            <input type="text" id="firstname" name="firstname" required
+                pattern="^[A-Za-z]{1,30}$"
+                title="First name must be 1-30 characters long and contain only letters"
+                value="{{formData.firstname}}">
+            <div class="error-message" id="firstnameError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="lastname">Last Name</label>
+            <input type="text" id="lastname" name="lastname" required
+                pattern="^[A-Za-z]{1,30}$"
+                title="Last name must be 1-30 characters long and contain only letters"
+                value="{{formData.lastname}}">
+            <div class="error-message" id="lastnameError"></div>
+        </div>
+
+        <button type="submit" class="btn">Create Company & Account</button>
+    </form>
+</div>
+
+<script src="/js/form_validation.js"></script> 
