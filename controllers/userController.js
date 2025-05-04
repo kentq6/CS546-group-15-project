@@ -39,6 +39,7 @@ export async function getAllUsersHandler (req, res, next) {
 /**
  * Creates a new user from request body
  * 
+ * Assumes user has already been attatched to request
  */
 export async function createUserHandler (req, res, next) {
     try {

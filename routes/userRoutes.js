@@ -1,45 +1,33 @@
 import { Router } from 'express'
-import 
-    { attatchTargetUserToReq
-    , createUserHandler
-    , deleteTargetUserHandler
-    , getAllUsersHandler
-    , getTargetUserHandler
-    , updateUserHandler
-    } 
-    from '../controllers/userController.js'
-import
-    { authenticateAndAuthorizeAllRoles
-    , authenticateAndAuthorizeRoles
-    }
-    from '../middleware/auth.js'
+import * as userHandlers from '../controllers/userController.js'
+import * as authHandlers from '../middleware/auth.js'
 
 const router = Router()
 
-router.param('target_user_id', attatchTargetUserToReq)
+router.param('target_user_id', userHandlers.attatchTargetUserToReq)
 
 router.route('/')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , getAllUsersHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , userHandlers.getAllUsersHandler
         )
     .post
-        ( authenticateAndAuthorizeRoles('Owner')
-        , createUserHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Owner')
+        , userHandlers.createUserHandler
         )
     .put
-        ( authenticateAndAuthorizeAllRoles
-        , updateUserHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , userHandlers.updateUserHandler
         )
 
 router.route('/:target_user_id')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , getTargetUserHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , userHandlers.getTargetUserHandler
         )
     .delete
-        ( authenticateAndAuthorizeRoles('Owner')
-        , deleteTargetUserHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Owner')
+        , userHandlers.deleteTargetUserHandler
         )
     
 

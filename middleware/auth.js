@@ -94,7 +94,7 @@ export async function dummyAuthenticate (req, res, next) {
     try {
         // CHANGE THIS VALUE TO SIMULATE REQUESTS MADE BY A CERTAIN USER
         // FOR PROTECTED ROUTES
-        const dummyId = '680fa482817ac4f3f0f9211a'
+        const dummyId = '6817f151c55d6f41ccf5bc31'
         const user = await User.findById(dummyId)
         if (!user) {
             throw new NotFoundError('User of this request was not found')

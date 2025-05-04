@@ -22,6 +22,9 @@ export function attatchIssueToRequest (req, res, next, id) {
  */
 export async function createIssueHandler (req, res, next) {
     try {
+        // initial issue state defaults to pending,
+        // so mongoose does not need a status field when creating an issue.
+        //  check issueSchema in model.js for details
         const issueFieldNames =
             [ 'title'
             , 'description'
@@ -49,9 +52,13 @@ export async function updateIssueHandler (req, res, next) {
     try {
 
         const updates = getNonRequiredFields(['status'], req.body)
-        req.issue.status = updates.status
-        await req.report.save()
-        return res.status(200).json(req.report)
+        if (updates.status) {
+            req.issue.status = updates.status
+            await req.report.save()
+            return res.status(200).json(req.report)
+        } else {
+            return res.status(200).json(req.report)
+        }
     } catch(err) {
         next(err)
     }
