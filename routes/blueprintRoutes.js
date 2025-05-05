@@ -1,52 +1,38 @@
 import { Router } from "express";
-import 
-    { attatchBlueprintToReq
-    , createBlueprintHandler
-    , deleteBlueprintHandler
-    , getAllBlueprintsHandler
-    , getBlueprintByIdHandler
-    , updateBlueprintHandler
-    } from "../controllers/blueprintController.js"
-
-import 
-    { authenticateAndAuthorizeAllRoles
-    , authenticateAndAuthorizeRoles
-    , authorizeProjectMember
-    , authorizeProjectMemberOrOwner
-    } from "../middleware/auth.js";
-
+import * as blueprintHandlers from "../controllers/blueprintController.js"
+import * as authHandlers from "../middleware/auth.js"
 
 const router = Router()
 
-router.param('blueprint_id', attatchBlueprintToReq)
+router.param('blueprint_id', blueprintHandlers.attatchBlueprintToReq)
 
 router.route('/')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , authorizeProjectMemberOrOwner
-        , getAllBlueprintsHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , authHandlers.authorizeProjectMemberOrOwner
+        , blueprintHandlers.getAllBlueprintsHandler
         )
     .post
-        ( authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
-        , authorizeProjectMember
-        , createBlueprintHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
+        , authHandlers.authorizeProjectMember
+        , blueprintHandlers.createBlueprintHandler
         )
 
 router.route('/:blueprint_id')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , authorizeProjectMemberOrOwner
-        , getBlueprintByIdHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , authHandlers.authorizeProjectMemberOrOwner
+        , blueprintHandlers.getBlueprintByIdHandler
         )
     .put
-        ( authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
-        , authorizeProjectMember
-        , updateBlueprintHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
+        , authHandlers.authorizeProjectMember
+        , blueprintHandlers.updateBlueprintHandler
         )
     .delete
-        ( authenticateAndAuthorizeRoles('Field Manager')
-        , authorizeProjectMember
-        , deleteBlueprintHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager')
+        , authHandlers.authorizeProjectMember
+        , blueprintHandlers.deleteBlueprintHandler
         )
 
 

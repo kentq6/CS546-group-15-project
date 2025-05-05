@@ -4,6 +4,14 @@ import { Task, User } from "../model/model.js";
 
 export const attatchTaskToReq = attatchDocToReqByIdCheckProjectId(Task)
 
+/**
+ * Gets all all tasks based on a users role. 
+ * If a user is an engineer, they get all tasks assigned to them 
+ * based on the project in the request.
+ * If a user is an Owner or Field Manager, get all tasks based on the project in the request.
+ * 
+ * Assumes project and user have already been attatched in the request
+ */
 export async function getTasksHandler (req, res, next) {
     try {
         if (isUserAnEngineer(req.user)) {
@@ -23,6 +31,11 @@ export async function getTasksHandler (req, res, next) {
     }
 }
 
+/**
+ * Creates a task based on the fields in the request body
+ * 
+ * Assumes project has already been attatched to the request
+ */
 export async function createTaskHandler (req, res, next) {
     try {
         const taskRequiredFieldNames =
@@ -45,10 +58,9 @@ export async function createTaskHandler (req, res, next) {
             throw new NotFoundError('User task is assigned to not found')
         }
         if (!req.project.members.includes(task.assignedTo)) {
-            throw new PermissionError('User assigned to task does not belong to the same project')
+            throw new PermissionError('User assigned to this task is not a member of the project in the request')
         }
         
-
         await task.save()
 
         return res.status(201).json(task)
@@ -57,6 +69,11 @@ export async function createTaskHandler (req, res, next) {
     }
 }
 
+/**
+ * Gets a task by ID provided in the request
+ * 
+ * Assumes task has already been attatched to request
+ */
 export async function getTaskByIdHandler (req, res, next) {
     try {
         return res.status(200).json(req.task)
@@ -65,16 +82,22 @@ export async function getTaskByIdHandler (req, res, next) {
     }
 }
 
+/**
+ * Updates the status of the task in the request. 
+ * Only users assigned to this task can update its status
+ * 
+ * Assumes user and task have already been attatched to the request
+ */
 export async function updateTaskHandler (req, res, next) {
     try {
-        if (!req.task.assignedTo.equals(req.user)) {
+        if (!req.task.assignedTo.equals(req.user._id)) {
             throw new PermissionError('Requesting user cannot update a task which is not assigned to them')
         }
         const updateFieldNames = ['status']
         const updates = getNonRequiredFields(updateFieldNames, req.body)
         const updatedTask = await Task.findByIdAndUpdate(req.task._id, updates, { runValidators: true, new: true })
         if (!updatedTask) {
-            throw new NotFoundError('Task not found; no updated applied')
+            throw new NotFoundError('Task not found; no updates applied')
         }
         return res.status(200).json(updatedTask)
     } catch(err) {
@@ -82,6 +105,11 @@ export async function updateTaskHandler (req, res, next) {
     }
 }
 
+/**
+ * Deletes a task
+ * 
+ * Assumes task has already been attatched to the request
+ */
 export async function deleteTaskHandler (req, res, next) {
     try {
         const deletedTask = await Task.findByIdAndDelete(req.task._id)

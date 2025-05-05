@@ -14,7 +14,7 @@ export const attatchProjectToReq = attatchDocumentToReqById(Project)
 /**
  * Gets all projects based on a users role
  * 
- * Assumes user has been attatched to request
+ * Assumes user has already been attatched to request
  */
 export async function getProjectsHandler (req, res, next) {
     try {
@@ -44,10 +44,11 @@ export async function getProjectsHandler (req, res, next) {
  * Creates a new project from fields provided in the request body, 
  * adds the requesting user as the initial member of the project
  * 
- * assumes user has been attatched to request
+ * assumes user has already been attatched to request
  */
 export async function createProjectHandler (req, res, next) {
     try {
+        // status is defaulted to pending, so no need to add it to request body
         const projectFieldNames =
             [ 'title'
             , 'description'
@@ -57,6 +58,7 @@ export async function createProjectHandler (req, res, next) {
         const project = await Project.create({
             ...projectFields,
             company: req.user.company,
+            // requesting user is the initial member of this project
             members: [req.user._id]
         })
         return res.status(201).json(project)
@@ -95,10 +97,11 @@ export async function updateProjectHandler(req, res, next) {
 
         // use validate so 'members' is sure to be an array
         const docOfUpdate = new Project(updates)
+        // validate only the paths that will be updated
         await docOfUpdate.validate(Object.keys(updates))
 
         // validatiaon if request is updating the members of a project
-        if ('members' in docOfUpdate) {
+        if ('members' in updates) {
             // get member details of the project
             const { members: oldMembers } = await Project.findById(req.project._id).populate('members')
 

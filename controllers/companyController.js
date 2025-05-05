@@ -35,18 +35,6 @@ export async function createCompanyAndOwnerHandler (req, res, next) {
         const ownerFields = getRequiredFieldsOrThrow(ownerFieldNames, req.body)
         const companyFields = getRequiredFieldsOrThrow(companyFieldNames, req.body)
 
-        // Check if company exists with this name
-        const existingCompany = await Company.findOne({ title: companyFields.title });
-        if (existingCompany) {
-            throw 'Company with this name already exists';
-        }
-
-        // Check if user exists with this username
-        const existingUser = await User.findOne({ username: ownerFields.username });
-        if (existingUser) {
-            throw 'User with this username already exists';
-        }
-
         const companyId = new mongoose.Types.ObjectId()
 
         // create an owner, if create() throws, nbd - we havent created a company yet

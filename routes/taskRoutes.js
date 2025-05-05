@@ -1,38 +1,38 @@
 import { Router } from "express"
- import { authenticateAndAuthorizeAllRoles, authenticateAndAuthorizeRoles, authorizeProjectMember, authorizeProjectMemberOrOwner } from "../middleware/auth.js"
- import { attatchTaskToReq, createTaskHandler, deleteTaskHandler, getTaskByIdHandler, getTasksHandler, updateTaskHandler } from "../controllers/taskController.js"
+ import * as authHandlers from "../middleware/auth.js"
+ import * as taskHandlers from "../controllers/taskController.js"
 
 const router = Router()
  
-router.param('task_id', attatchTaskToReq)
+router.param('task_id', taskHandlers.attatchTaskToReq)
  
 router.route('/')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , authorizeProjectMemberOrOwner
-        , getTasksHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , authHandlers.authorizeProjectMemberOrOwner
+        , taskHandlers.getTasksHandler
         )
     .post
-        ( authenticateAndAuthorizeRoles('Field Manager')
-        , authorizeProjectMember
-        , createTaskHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager')
+        , authHandlers.authorizeProjectMember
+        , taskHandlers.createTaskHandler
         )
  
 router.route('/:task_id')
     .get
-        ( authenticateAndAuthorizeAllRoles
-        , authorizeProjectMemberOrOwner
-        , getTaskByIdHandler
+        ( authHandlers.authenticateAndAuthorizeAllRoles
+        , authHandlers.authorizeProjectMemberOrOwner
+        , taskHandlers.getTaskByIdHandler
         )
     .put
-        ( authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
-        , authorizeProjectMember
-        , updateTaskHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager', 'Engineer')
+        , authHandlers.authorizeProjectMember
+        , taskHandlers.updateTaskHandler
         )
     .delete
-        ( authenticateAndAuthorizeRoles('Field Manager')
-        , authorizeProjectMember
-        , deleteTaskHandler
+        ( authHandlers.authenticateAndAuthorizeRoles('Field Manager')
+        , authHandlers.authorizeProjectMember
+        , taskHandlers.deleteTaskHandler
         )
  
 export default router

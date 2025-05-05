@@ -26,11 +26,12 @@ export async function getReportsHandler (req, res, next) {
  */
 export async function createReportHandler (req, res, next) {
     try {
+        // Since issues appear after a report is created, we dont need them when initially creating a report
         const requiredFieldNames =
             [ 'title'
             , 'description'
             , 'tags'
-            , 'fileURL' // do we want to add issues in as well when creating a report, or have those appear strictly after a report is created?
+            , 'fileURL'
             ]
         const requiredFields = getRequiredFieldsOrThrow(requiredFieldNames, req.body)
         const report = await Report.create({
@@ -69,7 +70,6 @@ export async function updateReportHandler (req, res, next) {
             , 'fileURL'
             ]
         const updates = getNonRequiredFields(updateFieldNames, req.body)
-        console.log(updates)
         const updatedReport = await Report.findByIdAndUpdate(req.report._id, updates, { runValidators: true, new: true })
         if (!updatedReport) {
             throw new NotFoundError('Report not found; no updates applied')
