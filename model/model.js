@@ -1,5 +1,6 @@
 import mongoose, { model } from 'mongoose'
 import { DuplicateKeyError, NotFoundError } from '../error/error.js';
+import bcrypt from 'bcrypt';
 
 const { Schema } = mongoose;
 
@@ -19,16 +20,15 @@ const userSchema = new Schema({
     },
     password: {         // not updatable
         type: String,
-        required: true,
-        match: [/^[A-Za-z0-9!?]{8,30}$/, 'Incorrect password format']
+        required: true
     },
     firstname: {        // updatable
         type: String,
         required: true,
         match: [/^[A-Za-z]{1,30}$/, 'Incorrect firstname format'],
-        trim: true,                                     // setter calls trim() before the match validator
-        lowercase: true,                                // setter calls toLowerCase() before the match validator
-        get: capitalizeWords                            // getter capitalizes words
+        trim: true,                                     
+        lowercase: true,                                
+        get: capitalizeWords                            
     },
     lastname: {         // updatable
         type: String,
@@ -55,6 +55,24 @@ const userSchema = new Schema({
         }
     }
 })
+
+/* 
+ * Middleware to hash passwords before saving to database
+ * This ensures passwords are never stored in plain text, not sure if we need this but im doin it anyway
+ * Uses bcrypt with a salt round of 10 for secure password hashing. Dont go over or it will take forever to hash
+ */
+userSchema.pre('save', async function(next) {
+    /* Skip hashing if password hasn't been modified */
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 const companySchema = new Schema({
     title: {            // not updatable
@@ -222,11 +240,21 @@ const top_level_shcemas = [userSchema, companySchema, projectSchema, blueprintSc
 top_level_shcemas.map(schema => {
     schema.post('save', function(error, doc, next) {
         if (error.name === 'MongoServerError' && error.code === 11000) {
-          next(new DuplicateKeyError(`Duplicate key error; document with unique index already exists: documentId: ${doc._id}`))
+            // Check if it's a username duplicate
+            if (error.message.includes('username')) {
+                next(new Error('Username already exists. Please choose a different username.'));
+            }
+            // Check if it's a company title duplicate
+            else if (error.message.includes('title')) {
+                next(new Error('Company name already exists. Please choose a different company name.'));
+            }
+            else {
+                next(new DuplicateKeyError(`Duplicate key error; document with unique index already exists: documentId: ${doc._id}`));
+            }
         } else {
-          next()
+            next();
         }
-      })
+    });
 })
 
 // consts must be declared before usage at top level 

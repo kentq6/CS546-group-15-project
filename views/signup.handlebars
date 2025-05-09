@@ -54,9 +54,10 @@
         <div class="form-group">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" required
-                pattern="^[a-z0-9_]{5,30}$"
-                title="Username must be 5-30 characters long and contain only lowercase letters, numbers, and underscores"
-                value="{{formData.username}}">
+                pattern="^[A-Za-z0-9_]{5,30}$"
+                title="Username must be 5-30 characters long and contain only letters, numbers, and underscores"
+                value="{{formData.username}}"
+                oninput="this.value = this.value.toLowerCase()">
             <div class="error-message" id="usernameError"></div>
         </div>
 

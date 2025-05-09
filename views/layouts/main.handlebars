@@ -14,8 +14,14 @@
       </a>
     </div>
     <div class="nav-menu">
-      <a href="/login" class="nav-link">Login</a>
-      <a href="/signup" class="nav-link">Register A Company</a>
+      {{#if user}}
+        <form action="/logout" method="POST" style="display: inline; margin: 0; padding: 0;">
+          <button type="submit" class="nav-link" style="background-color: var(--company-orange); color: white; padding: 8px 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: none; font: inherit; cursor: pointer;">Logout</button>
+        </form>
+      {{else}}
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/signup" class="nav-link">Register A Company</a>
+      {{/if}}
     </div>
   </nav>
 

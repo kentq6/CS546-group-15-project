@@ -1,7 +1,10 @@
 import { NotFoundError, PermissionError } from '../error/error.js'
 import { getNonRequiredFields, getRequiredFieldsOrThrow, isUserAnOwner } from '../helpers.js'
 import { User } from '../model/model.js'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
+const JWT_SECRET = process.env.JWT_SECRET
 
 /**
  * Attatches target user to request 
@@ -146,29 +149,48 @@ export async function deleteTargetUserHandler (req, res, next) {
  * 
  * Assumes user and targetUser have already been attatched to request
  */
-
 export async function loginHandler(req, res, next) {
     try {
         const { username, password } = req.body;
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username.toLowerCase() });
+        
         if (!user) {
             return res.render('login', {
                 title: 'Login',
-                error: 'Invalid Username or Password, try again',
+                error: 'Invalid Credentials',
+                username: username
             });
         }
 
-        if (user.password !== password) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
             return res.render('login', {
                 title: 'Login',
-                error: 'Invalid Username or Password, try again',
+                error: 'Invalid Credentials',
+                username: username
             });
         }
 
+        // Create JWT token
+        const token = jwt.sign(
+            { userId: user._id, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // Set token in HTTP-only cookie
+        res.cookie('authToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours, we can change the timing of the cookie here to whatever idc
+        });
+
+        return res.redirect('/loggedInLanding');
     } catch(err) {
         return res.render('login', {
             title: 'Login',
-            error: 'Invalid Username or Password, try again',
+            error: 'Invalid Credentials',
+            username: req.body.username
         });
     }
 }
