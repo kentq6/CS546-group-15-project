@@ -1,23 +1,26 @@
-import userRoutes from './users.js';
-import projectRoutes from './projects.js';
-import taskRoutes from './tasks.js';
-import blueprintRoutes from './blueprints.js';
-import reportRoutes from './reports.js';
-import companyRoutes from './companies.js';
-// import dashboardRoutes from './dashboards.js';
+import companyRouter from './companyRoutes.js'
+import errorHandler from './errorHandler.js'
+import pageRouter from './pageRoutes.js'
+import userRouter from './userRoutes.js'
+import projectRouter from './projectRoutes.js'
 
 const constructorMethod = (app) => {
-  app.use('/users', userRoutes);
-  app.use('/projects', projectRoutes);
-  app.use('/tasks', taskRoutes);
-  app.use('/blueprints', blueprintRoutes);
-  app.use('/reports', reportRoutes);
-  app.use('/companies', companyRoutes);
-  // app.use('/dashboards', dashboardRoutes);
 
-  app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Route not found' });
-  });
-};
+    app.use('/', pageRouter)
 
-export default constructorMethod;
+    app.use('/company', companyRouter)
+
+    app.use('/users', userRouter)
+
+    app.use('/projects', projectRouter)
+
+    // catch-all error handler
+    app.use(errorHandler)
+
+    // catch-all routes that arent defined
+    app.use(/(.)*/, (req, res) => {
+        return res.status(404).json({status: 'error', message: 'Resource not found'})
+    })
+}
+
+export default constructorMethod

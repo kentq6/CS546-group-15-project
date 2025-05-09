@@ -1,4 +1,3 @@
-export const mongoConfig = {
-  serverUrl: 'mongodb://localhost:27017/',
-  database: 'GoProject'
-};
+export const serverUrl = 'mongodb://127.0.0.1:27017/';
+
+export const dbName =  'GoProject';

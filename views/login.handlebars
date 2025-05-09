@@ -1,0 +1,36 @@
+<div class="page-container">
+    <div class="page-header">
+        <h1>Welcome Back!</h1>
+        <p>Sign in to your company to access your dashboard</p>
+    </div>
+
+    {{#if error}}
+    <div class="error-banner">
+        {{error}}
+    </div>
+    {{/if}}
+
+    <form id="loginForm" action="/login" method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+            <div class="error-message" id="usernameError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="btn">Sign In</button>
+    </form>
+
+    <div class="page-footer">
+        <p>Don't have an account? <a href="/signup">Register your company</a></p>
+        <div class="footer-logo">
+            <img src="/images/Go-removebg-preview.png" alt="goProject Logo">
+        </div>
+    </div>
+</div>
+<script src="/js/form_validation.js"></script> 
