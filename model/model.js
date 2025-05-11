@@ -4,11 +4,9 @@ import bcrypt from 'bcrypt';
 
 const { Schema } = mongoose;
 
-const capitalizeWords = (str) => {
-    return str.split(' ')
+const capitalizeWords = (str) => str.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-}
+        .join(' ')
 
 const userSchema = new Schema({
     username: {         // not updatable
@@ -33,7 +31,7 @@ const userSchema = new Schema({
     lastname: {         // updatable
         type: String,
         required: true,
-        match: [/[A-Za-z]{1,30}/, 'Incorrect lastname format'],
+        match: [/^[A-Za-z]{1,30}$/, 'Incorrect lastname format'],
         trim: true,
         lowercase: true,
         get: capitalizeWords
@@ -49,11 +47,7 @@ const userSchema = new Schema({
         required: true
     }
 }, {
-    query: {
-        byProjectId: function (projectId) {
-            return this.where({projects: projectId})
-        }
-    }
+    toJSON: {getters: true}
 })
 
 /* 
@@ -104,7 +98,10 @@ const companySchema = new Schema({
         get: capitalizeWords
     }
     // adds automatic createdAt and updatedAt fields, and auto updates them as documents are created/updated
-}, { timestamps: true })
+}, {
+    timestamps: true,
+    toJSON: {getters: true}
+})
 
 const common_fields = {
     title: {        // non-unique title | non-updatabale
@@ -239,20 +236,22 @@ const projectSchema = new Schema({
 const top_level_shcemas = [userSchema, companySchema, projectSchema, blueprintSchema, taskSchema, reportSchema]
 top_level_shcemas.map(schema => {
     schema.post('save', function(error, doc, next) {
+        // if there is a duplicate key error
         if (error.name === 'MongoServerError' && error.code === 11000) {
-            // Check if it's a username duplicate
-            if (error.message.includes('username')) {
+            // check if it's a username duplicate
+            if (doc instanceof User) {
                 next(new Error('Username already exists. Please choose a different username.'));
             }
-            // Check if it's a company title duplicate
-            else if (error.message.includes('title')) {
+            // check if it's a company title duplicate
+            else if (doc instanceof Company) {
                 next(new Error('Company name already exists. Please choose a different company name.'));
             }
+            // or else, pass it on as a general duplicate key error
             else {
                 next(new DuplicateKeyError(`Duplicate key error; document with unique index already exists: documentId: ${doc._id}`));
             }
         } else {
-            next();
+            next(error);
         }
     });
 })

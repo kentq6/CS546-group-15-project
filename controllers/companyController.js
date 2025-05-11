@@ -61,7 +61,7 @@ export async function createCompanyAndOwnerHandler (req, res, next) {
             throw companyErr
         } 
     } catch(err) {
-        return res.render('signup', {
+        return res.status(500).render('signup', {
             title: 'Sign Up',
             error: err.message,
             formData: {

@@ -25,10 +25,10 @@ export class DuplicateKeyError extends Error {
     }
 }
 
-export class AuthorizationError extends Error {
+export class AuthenticationError extends Error {
     constructor(message) {
         super(message);
-        this.name = 'AuthorizationError'
+        this.name = 'AuthenticationError'
     }
 }
 

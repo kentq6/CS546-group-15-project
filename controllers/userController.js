@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET
  */
 export async function attatchTargetUserToReq (req, res, next, id) {
     try {
-        const targetUser = await User.findById(id)
+        const targetUser = await User.findById(id).select('-password')
         if (!targetUser) {
             throw new NotFoundError('User not found')
         }
@@ -68,7 +68,10 @@ export async function createUserHandler (req, res, next) {
 
         await user.save()
 
-        return res.status(201).json(user)
+        // ensure password is not returned to the frontend
+        const {password, ...safeUser} = user.toJSON()
+
+        return res.status(201).json(safeUser)
 
     } catch(err) {
         next(err)
@@ -89,10 +92,16 @@ export async function updateUserHandler (req, res, next) {
             ]
         const updates = getNonRequiredFields(updateFields, req.body)
 
-        const newUser = await User.findByIdAndUpdate(req.user._id, updates, {runValidators: true, new: true})
+        const newUser = await User.findByIdAndUpdate(req.user._id, updates, {
+            runValidators: true,
+            new: true,
+            select: '-password'
+        })
+
         if (!newUser) {
             throw new NotFoundError('User to be updated was not found')
         }
+
         return res.status(200).json(newUser)
     }
     catch(err) {
@@ -138,21 +147,24 @@ export async function deleteTargetUserHandler (req, res, next) {
             throw new NotFoundError('Target user not found; no delete applied')
         }
 
-        return res.status(200).json(deletedUser)
+        // ensure password is not returned to the frontend
+        const {password, ...safeDeletedUser} = deletedUser.toJSON()
+
+        return res.status(200).json(safeDeletedUser)
     } catch(err) {
         next(err)
     }
 }
 
 /**
- * Logs in a user with username and password provided in request body
- * 
- * Assumes user and targetUser have already been attatched to request
+ * Logs in a user with username and password provided in request body 
+ * redirects the logged in user to the protected landing page
  */
 export async function loginHandler(req, res, next) {
+    // console.log('Login route hit with body:', req.body);         I ADDED A BCRYPT HASH THE PASSWORD IN OUR DB. IF YOU WANT TO SEE THE PASSWORDS and U FORGOT WHAT IT WAS, UNCOMMENT THIS. 
     try {
-        const { username, password } = req.body;
-        const user = await User.findOne({ username: username.toLowerCase() });
+        const { username, password } = getRequiredFieldsOrThrow(['username', 'password'], req.body)
+        const user = await User.findOne({ username });
         
         if (!user) {
             return res.render('login', {
@@ -185,8 +197,9 @@ export async function loginHandler(req, res, next) {
             maxAge: 24 * 60 * 60 * 1000 // 24 hours, we can change the timing of the cookie here to whatever idc
         });
 
-        return res.redirect('/loggedInLanding');
+        return res.redirect('/loggedInLanding')
     } catch(err) {
+        res.clearCookie('authToken')
         return res.render('login', {
             title: 'Login',
             error: 'Invalid Credentials',

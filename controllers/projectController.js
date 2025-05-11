@@ -151,7 +151,7 @@ export async function updateProjectHandler(req, res, next) {
  */
 export async function deleteProjectHandler(req, res, next) {
     try {
-        const deletedProject = await Project.findByIdAndDelete(req.project._id)
+        const deletedProject = await Project.findOneAndDelete({_id: req.project._id})
         if (!deletedProject) {
             throw new NotFoundError('Project not found; no delete applied')
         }

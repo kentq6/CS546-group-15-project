@@ -6,14 +6,14 @@ import projectRouter from './projectRoutes.js'
 
 const constructorMethod = (app) => {
 
-    app.use('/', pageRouter)
-
     app.use('/company', companyRouter)
 
     app.use('/users', userRouter)
 
     app.use('/projects', projectRouter)
 
+    app.use('/', pageRouter)
+    
     // catch-all error handler
     app.use(errorHandler)
 

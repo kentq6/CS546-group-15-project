@@ -1,5 +1,5 @@
 /* imports required modules and error types */
-import { AuthorizationError, NotFoundError, PermissionError } from "../error/error.js";
+import { AuthenticationError, NotFoundError, PermissionError } from "../error/error.js";
 import { isUserAProjectMember, isUserAProjectMemberOrOwner } from "../helpers.js";
 import { Project, User } from "../model/model.js";
 import jwt from 'jsonwebtoken';
@@ -7,29 +7,40 @@ import jwt from 'jsonwebtoken';
 /* jwt secret key from environment variables */
 const JWT_SECRET = process.env.JWT_SECRET;
 
-/* middleware to authenticate users based on jwt token, .env file is used to store the secret key, yall can check this out */
+/**
+ * Authenticates a user from the cookie provided in the request.
+ * If authentication fails, it clears the cookie and redirects to login page
+ * 
+ * This middleware is used for all protected routes
+ */
 export const authenticate = async (req, res, next) => {
     try {
-        const token = req.cookies.authToken;
+        //take token from cookie
+        const token = req.cookies?.authToken
         if (!token) {
-            return res.redirect('/login');
+            throw new AuthenticationError('Token not found; failed to authenticate')
         }
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        // use jsonwebtoken with a secret key in the .env file
+        const decoded = jwt.verify(token, JWT_SECRET)
+        const user = await User.findById(decoded.userId)
         
         if (!user) {
-            res.clearCookie('authToken');
-            return res.redirect('/login');
+            throw new AuthenticationError('User not found; failed to authenticate')
         }
+        // attatch user to the request
+        req.user = user
 
-        req.user = user;
-        next();
+        next()
     } catch (err) {
-        res.clearCookie('authToken');
-        return res.redirect('/login');
+        res.clearCookie('authToken')
+        return res.redirect('/login')
     }
-};
+}
+
+export function logout (req, res) {
+    res.clearCookie('authToken')
+    return res.redirect('/login')
+}
 
 /* middleware factory to check if user has required role */
 export function authorizeRoles(...roles) {

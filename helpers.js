@@ -118,8 +118,13 @@ export const isUserAnOwner = user       => user.role === 'Owner'
 export const isUserAnEngineer = user    => user.role === 'Engineer'
 export const isUserAFieldManager = user => user.role === 'Field Manager'
 
-export const isUserAProjectMember = (user, project) => project.members.includes(user._id)
+export const isUserAProjectMember = (user, project) => 
+    project.members.includes(user._id)
+    &&
+    user.company.equals(project.company)
 
-export const isUserAProjectMemberOrOwner = (user, project) => 
+export const isUserAProjectMemberOrOwner = (user, project) =>
+    user.company.equals(project.company) 
+    &&
     isUserAProjectMember(user, project) || isUserAnOwner(user)
 
