@@ -201,8 +201,7 @@ const projectSchema = new Schema({
     title: {            // unique, not updatable
         type: String,
         required: true,
-        match: [/^[A-Za-z0-9\s]{2,}$/, 'Incorrect title format'],
-        unique: true
+        match: [/^[A-Za-z0-9\s]{2,}$/, 'Incorrect title format']
     },
     description: common_fields.description,
     status: common_fields.status,
@@ -230,6 +229,7 @@ const projectSchema = new Schema({
         }
     }
 })
+projectSchema.index({title: 1, company: 1}, {unique: true})
 
 // Duplicate key errors are parsed from MongoDB Driver to our user defined error handlnig system
 //
