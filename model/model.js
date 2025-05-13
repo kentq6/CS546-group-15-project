@@ -8,6 +8,8 @@ const capitalizeWords = (str) => str.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
 
+const normalizeWhitespace = (str) => str.trim().replace(/\s+/g, ' ');
+
 const userSchema = new Schema({
     username: {         // not updatable
         type: String,
@@ -73,8 +75,9 @@ const companySchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        match: [/^[A-Za-z0-9\s]{2,30}$/, 'Incorrect title format'],
-        trim: true
+        match: [/^[A-Za-z0-9\s\-:&,]{2,30}$/, 'Incorrect title format'],
+        trim: true,
+        set: normalizeWhitespace
     },
     owner: {            // not updatable
         type: Schema.Types.ObjectId,
@@ -87,7 +90,8 @@ const companySchema = new Schema({
         match: [/^[A-Za-z\s\-']{2,30}, [A-Za-z\s\-']{2,30}$/, 'Incorrect Location format'],
         trim: true,
         lowercase: true,
-        get: capitalizeWords
+        get: capitalizeWords,
+        set: normalizeWhitespace
     },
     industry: {         // updatable
         type: String,
@@ -95,7 +99,8 @@ const companySchema = new Schema({
         match: [/^[A-Za-z\s]{2,30}$/, 'Incorrect industry format'],
         trim: true,
         lowercase: true,
-        get: capitalizeWords
+        get: capitalizeWords,
+        set: normalizeWhitespace
     }
     // adds automatic createdAt and updatedAt fields, and auto updates them as documents are created/updated
 }, {
@@ -108,12 +113,14 @@ const common_fields = {
         type: String,
         required: true,
         match: [/^[A-Za-z0-9\s]{2,30}$/, 'Incorrect title format'],
-        trim: true
+        trim: true,
+        set: normalizeWhitespace
     },
     description: {      // updatable
         type: String,
         required: true,
-        default: ''
+        default: '',
+        set: normalizeWhitespace
     },
     status: {           // updatable
         type: String,
@@ -202,7 +209,7 @@ const projectSchema = new Schema({
         type: String,
         required: true,
         match: [/^[A-Za-z0-9\s]{2,}$/, 'Incorrect title format'],
-        unique: true
+        set: normalizeWhitespace
     },
     description: common_fields.description,
     status: common_fields.status,
@@ -230,6 +237,7 @@ const projectSchema = new Schema({
         }
     }
 })
+projectSchema.index({title: 1, company: 1}, {unique: true})
 
 // Duplicate key errors are parsed from MongoDB Driver to our user defined error handlnig system
 //
