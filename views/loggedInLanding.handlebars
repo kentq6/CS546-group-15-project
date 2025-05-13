@@ -1,5 +1,410 @@
 <div class="page-container">
     <div class="page-header">
-        <h1>You're logged in</h1>
+        <h1>Welcome, {{user.firstname}}!</h1>
+        <h2 id="RoleAndCompany">Loading Role And Company</h2>
+
+        {{#if user.role}}
+        {{#ifCond user.role "Owner"}}
+
+            <p style="text-align: left; padding-top: 20px;">List of Employees In the Company:</p>
+
+            <ul id="userList" style="padding-left: 20px; padding-right: 20px;"></ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/users');
+      const users = await res.json();
+
+      const userList = document.getElementById('userList');
+
+      // Clear the list first (optional)
+      userList.innerHTML = '';
+
+      // Loop through users and add to the list
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = `${user.firstname} ${user.lastname} - ${user.role} - ${user._id}`;
+        userList.appendChild(li);
+    });
+
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+    }
+    });
+</script>
+
+
+
+
+            <p style="text-align: left; padding-top: 20px;">List of Projects In the Company:</p>
+
+            <ul id="projectList" style="padding-left: 20px; padding-right: 20px;"></ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/projects');
+      const projects = await res.json();
+
+      const projectList = document.getElementById('projectList');
+
+      // Clear the list first (optional)
+      projectList.innerHTML = '';
+
+      // Loop through users and add to the list
+      projects.forEach(project => {
+        const li = document.createElement('li');
+        li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project._id}`;
+        projectList.appendChild(li);
+    });
+
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+    }
+    });
+</script>
+
+
+    <p style="text-align: left; padding-top: 20px;">Create An Employee:</p>
+
+<form id="employeeForm">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required
+            pattern="^[A-Za-z0-9_]{5,30}$"
+            title="Username must be 5-30 characters long and contain only letters, numbers, and underscores"
+            oninput="this.value = this.value.toLowerCase()">
+        <div class="error-message" id="usernameError"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required
+            pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,30}$"
+            title="Password must be 8-30 characters long and contain at least 1 capital letter, 1 number, and 1 special character (!@#$%^&*)">
+        <div class="error-message" id="passwordError"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="firstname">First Name</label>
+        <input type="text" id="firstname" name="firstname" required
+            pattern="^[A-Za-z]{1,30}$"
+            title="First name must be 1-30 characters long and contain only letters">
+        <div class="error-message" id="firstnameError"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="lastname">Last Name</label>
+        <input type="text" id="lastname" name="lastname" required
+            pattern="^[A-Za-z]{1,30}$"
+            title="Last name must be 1-30 characters long and contain only letters">
+        <div class="error-message" id="lastnameError"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+           <option value="" disabled selected>Select a Role</option>
+           <option value="Field Manager">Field Manager</option>
+           <option value="Engineer">Engineer</option>
+        </select>
+        <div class="error-message" id="roleError"></div>
+    </div>
+
+    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Employee</button>
+</form>
+
+<script>
+  document.getElementById('employeeForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // Stop the normal form submission
+
+    const formData = {
+      username: document.getElementById('username').value.trim(),
+      password: document.getElementById('password').value,
+      firstname: document.getElementById('firstname').value.trim(),
+      lastname: document.getElementById('lastname').value.trim(),
+      role: document.getElementById('role').value
+    };
+
+    try {
+      const response = await fetch('/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('User created successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to create user'}`);
+      }
+    } catch (error) {
+
+    }
+  });
+</script>
+
+    <p style="text-align: left; padding-top: 20px;">Delete An Employee:</p>
+
+<form id="killEmployeeForm">
+
+    <div class="form-group">
+        <label for="Employee Id">Employee Id</label>
+        <input type="text" id="eid" name="eid" required>
+        <div class="error-message" id="passwordError"></div>
+    </div>
+
+    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Employee</button>
+</form>
+
+<script>
+  document.getElementById('killEmployeeForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // Stop the normal form submission
+
+
+    const employeeId = document.getElementById('eid').value.trim();
+  
+
+    try {
+      const response = await fetch(`/users/${employeeId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('User deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to delete user'}`);
+      }
+    } catch (error) {
+
+    }
+  });
+</script>
+
+
+    <p style="text-align: left; padding-top: 20px;">Delete The Company:</p>
+
+
+    <button id="deleteButton" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 50%">Delete Company</button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const deleteButton = document.getElementById('deleteButton');
+
+    deleteButton.addEventListener('click', async () => {
+      try {
+        // Send DELETE request to '/company'
+        const response = await fetch('/company', {
+          method: 'DELETE', // Specify the DELETE method
+          headers: {
+            'Content-Type': 'application/json', // Optional, for JSON request body if needed
+          },
+        });
+
+        if (response.ok) {
+          alert('Company deleted successfully');
+          // You can add code to update the page, redirect, etc.
+        } else {
+          alert('Failed to delete company');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Error occurred while deleting the company');
+      }
+    });
+  });
+</script>
+
+
+
+
+
+        
+
+        {{else}}
+        {{#ifCond user.role "Field Manager"}}
+
+            <p style="text-align: left; padding-top: 20px;">List of Projects You Are Apart Of:</p>
+
+            <ul id="projectList" style="padding-left: 20px; padding-right: 20px;"></ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/projects');
+      const projects = await res.json();
+
+      const projectList = document.getElementById('projectList');
+
+      // Clear the list first (optional)
+      projectList.innerHTML = '';
+
+      // Loop through users and add to the list
+      projects.forEach(project => {
+        const li = document.createElement('li');
+        li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project._id}`;
+        projectList.appendChild(li);
+    });
+
+    } catch (err) {
+      console.error('Failed to fetch projects:', err);
+    }
+    });
+</script>
+
+
+        <p style="text-align: left; padding-top: 20px;">Create A Project:</p>
+
+<form id="projectForm">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required>
+        <div class="error-message" id="usernameError"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <input type="description" id="description" name="description" required
+    </div>
+
+    <div class="form-group">
+        <label for="budget">Budget</label>
+        <input type="text" id="budget" name="budget" required>
+    </div>
+
+    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Project</button>
+</form>
+
+<script>
+  document.getElementById('projectForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // Stop the normal form submission
+
+    const formData = {
+      title: document.getElementById('title').value.trim(),
+      description: document.getElementById('description').value,
+      budget: document.getElementById('budget').value.trim(),
+    };
+
+    try {
+      const response = await fetch('/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Project created successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to create project'}`);
+      }
+    } catch (error) {
+
+    }
+  });
+</script>
+
+    <p style="text-align: left; padding-top: 20px;">Delete A Project:</p>
+
+<form id="killProjectForm">
+
+    <div class="form-group">
+        <label for="Project Id">Project Id</label>
+        <input type="text" id="pid" name="pid" required>
+        <div class="error-message" id="passwordError"></div>
+    </div>
+
+    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Project</button>
+</form>
+
+<script>
+  document.getElementById('killProjectForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); // Stop the normal form submission
+
+
+    const projectId = document.getElementById('pid').value.trim();
+  
+
+    try {
+      const response = await fetch(`/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Project deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to delete project'}`);
+      }
+    } catch (error) {
+
+    }
+  });
+</script>
+
+
+
+
+
+
+        {{else}}
+        {{#ifCond user.role "Engineer"}}
+                <p>User is an Engineer! We Will Display Unique Engineer Functions Here</p>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+    {{else}}
+    <p>Role not recognized, how did you even get this far?</p>
+    {{/ifCond}}
+    {{/ifCond}}
+    {{/ifCond}}
+    {{else}}
+    <p>No role found, how did you even get this far?</p>
+    {{/if}}
+
     </div>
 </div> 
+
+
+
+<script>
+    // Declare globally accessible variable
+    window.companyData = null;
+    const userRole = '{{user.role}}';
+
+    // Fetch company data when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/company');
+            const data = await res.json();
+
+                const container = document.getElementById('RoleAndCompany');
+                container.textContent = `You are a(n) ${userRole} at ${data.title}`;
+
+            
+            
+        } catch (err) {
+            console.error('Error loading company info:', err);
+        }
+    });
+</script>
