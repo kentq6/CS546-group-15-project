@@ -5,6 +5,8 @@ import { connectToDb } from './config/connection.js'
 import exphbs from 'express-handlebars'
 import cookieParser from 'cookie-parser'
 
+
+
 async function run() {
     const app = express()
 
@@ -13,8 +15,24 @@ async function run() {
     app.use(express.static('public'))
     app.use(cookieParser())
     
+    // Create the Handlebars engine with custom helpers
+    const hbs = exphbs.create({
+        runtimeOptions: {
+            allowProtoPropertiesByDefault: true,
+            allowProtoMethodsByDefault: true,
+        },
+        defaultLayout: 'main', // Ensure this layout exists in views/layouts
+        helpers: {
+            ifCond(v1, v2, options) {
+                if (v1 === v2) {
+                    return options.fn(this); // Render the block if they match
+                }
+                return options.inverse(this); // Render the inverse block if they don't match
+            }
+        }
+    });
 
-    app.engine('handlebars', exphbs.engine({ defaultLayout: 'main' }))
+    app.engine('handlebars', hbs.engine);
     app.set('view engine', 'handlebars');
 
     configRoutes(app)
