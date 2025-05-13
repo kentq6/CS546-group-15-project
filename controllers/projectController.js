@@ -1,5 +1,5 @@
 import { NotFoundError, PermissionError, ValidationError } from "../error/error.js"
-import { allUnique, areDocumentsASubset, attatchDocumentToReqById, getNonRequiredFields, getRequiredFieldsOrThrow, isUserAFieldManager } from "../helpers.js"
+import { allUnique, areDocumentsASubset, attatchDocToReqByIdCheckProjectId, attatchDocumentToReqById, getNonRequiredFields, getRequiredFieldsOrThrow, isUserAFieldManager, isUserAnOwner } from "../helpers.js"
 import { Project, User } from "../model/model.js"
 import mongoose from "mongoose"
 /**
@@ -11,6 +11,22 @@ import mongoose from "mongoose"
  */
 export const attatchProjectToReq = attatchDocumentToReqById(Project)
 
+/* used to see if the user is a project member. if so, adds it to the request as a member */
+export async function attatchMemberToReqCheckProjectMembers(req, res, next, id) {
+    try {
+        const targetUser = await User.findById(id).select('-password')
+        if (!targetUser) {
+            throw new NotFoundError('User not found')
+        }
+        if (!req.project.members.includes(targetUser._id)) {
+            throw new PermissionError('User is not a member of this project')
+        }
+        req.member = targetUser
+        next()
+    } catch(err) {
+        next(err)
+    }   
+}
 /**
  * Gets all projects based on a users role
  * 
@@ -156,6 +172,38 @@ export async function deleteProjectHandler(req, res, next) {
             throw new NotFoundError('Project not found; no delete applied')
         }
         return res.status(200).json(deletedProject)
+    } catch(err) {
+        next(err)
+    }
+}
+
+
+export async function addTargetUserToProjectHandler(req, res, next) {
+    try {
+        // ensure no owners are added to a project
+        if (isUserAnOwner(req.targetUser)) {
+            throw new PermissionError('Owner cannot be added to a project')
+        }
+        // ensure no member being added works under a different company as the requesting user
+        if (!req.user.company.equals(req.targetUser.company)) {
+            throw new PermissionError('Member being added does not belong to the same company as the requesting user')
+        }
+        req.project.members.addToSet(req.targetUser._id)
+        const updatedProject = await req.project.save()
+        return res.status(200).json(updatedProject)
+    } catch(err) {
+        next(err)
+    }
+}
+
+export async function removeMemberFromProjectHandler(req, res, next) {
+    try {
+        if (isUserAFieldManager(req.member)) {
+            throw new PermissionError('Field Managers are not removable from a project')
+        }
+        req.project.members.pull(req.member._id)
+        const updatedProject = await req.project.save()
+        return res.status(200).json(updatedProject)
     } catch(err) {
         next(err)
     }
