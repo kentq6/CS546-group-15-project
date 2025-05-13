@@ -10,221 +10,217 @@
 
             <ul id="userList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/users');
-      const users = await res.json();
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                  const res = await fetch('/users');
+                  const users = await res.json();
 
-      const userList = document.getElementById('userList');
+                  const userList = document.getElementById('userList');
 
-      // Clear the list first (optional)
-      userList.innerHTML = '';
+                  // Clear the list first (optional)
+                  userList.innerHTML = '';
 
-      // Loop through users and add to the list
-      users.forEach(user => {
-        const li = document.createElement('li');
-        li.textContent = `${user.firstname} ${user.lastname} - ${user.role} - Id: ${user._id}`;
-        userList.appendChild(li);
-    });
+                  // Loop through users and add to the list
+                  users.forEach(user => {
+                    const li = document.createElement('li');
+                    li.textContent = `${user.firstname} ${user.lastname} - ${user.role} - Id: ${user._id}`;
+                    userList.appendChild(li);
+                });
 
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-    }
-    });
-</script>
-
-
-
+                } catch (err) {
+                  console.error('Failed to fetch users:', err);
+                }
+                });
+            </script>
 
             <p style="text-align: left; padding-top: 20px;">List of Projects In the Company:</p>
 
             <ul id="projectList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/projects');
-      const projects = await res.json();
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                  const res = await fetch('/projects');
+                  const projects = await res.json();
 
-      const projectList = document.getElementById('projectList');
+                  const projectList = document.getElementById('projectList');
 
-      // Clear the list first (optional)
-      projectList.innerHTML = '';
+                  // Clear the list first (optional)
+                  projectList.innerHTML = '';
 
-      // Loop through users and add to the list
-      projects.forEach(project => {
-        const li = document.createElement('li');
-        li.textContent = `${project.title}: ${project.description} - ${project.status} - Budget: ${project.budget} - Id: ${project._id}`;
-        projectList.appendChild(li);
-    });
+                  // Loop through users and add to the list
+                  projects.forEach(project => {
+                    const li = document.createElement('li');
+                    li.textContent = `${project.title}: ${project.description} - ${project.status} - Budget: ${project.budget} - Id: ${project._id}`;
+                    projectList.appendChild(li);
+                });
 
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-    }
-    });
-</script>
+                } catch (err) {
+                  console.error('Failed to fetch users:', err);
+                }
+                });
+            </script>
 
+            <p style="text-align: left; padding-top: 20px;">Create An Employee:</p>
 
-    <p style="text-align: left; padding-top: 20px;">Create An Employee:</p>
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required
+                        pattern="^[A-Za-z0-9_]{5,30}$"
+                        title="Username must be 5-30 characters long and contain only letters, numbers, and underscores"
+                        oninput="this.value = this.value.toLowerCase()">
+                    <div class="error-message" id="usernameError"></div>
+                </div>
 
-<form id="employeeForm">
-    <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required
-            pattern="^[A-Za-z0-9_]{5,30}$"
-            title="Username must be 5-30 characters long and contain only letters, numbers, and underscores"
-            oninput="this.value = this.value.toLowerCase()">
-        <div class="error-message" id="usernameError"></div>
-    </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required
+                        pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,30}$"
+                        title="Password must be 8-30 characters long and contain at least 1 capital letter, 1 number, and 1 special character (!@#$%^&*)">
+                    <div class="error-message" id="passwordError"></div>
+                </div>
 
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required
-            pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,30}$"
-            title="Password must be 8-30 characters long and contain at least 1 capital letter, 1 number, and 1 special character (!@#$%^&*)">
-        <div class="error-message" id="passwordError"></div>
-    </div>
+                <div class="form-group">
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" name="firstname" required
+                        pattern="^[A-Za-z]{1,30}$"
+                        title="First name must be 1-30 characters long and contain only letters">
+                    <div class="error-message" id="firstnameError"></div>
+                </div>
 
-    <div class="form-group">
-        <label for="firstname">First Name</label>
-        <input type="text" id="firstname" name="firstname" required
-            pattern="^[A-Za-z]{1,30}$"
-            title="First name must be 1-30 characters long and contain only letters">
-        <div class="error-message" id="firstnameError"></div>
-    </div>
+                <div class="form-group">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" name="lastname" required
+                        pattern="^[A-Za-z]{1,30}$"
+                        title="Last name must be 1-30 characters long and contain only letters">
+                    <div class="error-message" id="lastnameError"></div>
+                </div>
 
-    <div class="form-group">
-        <label for="lastname">Last Name</label>
-        <input type="text" id="lastname" name="lastname" required
-            pattern="^[A-Za-z]{1,30}$"
-            title="Last name must be 1-30 characters long and contain only letters">
-        <div class="error-message" id="lastnameError"></div>
-    </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                       <option value="" disabled selected>Select a Role</option>
+                       <option value="Field Manager">Field Manager</option>
+                       <option value="Engineer">Engineer</option>
+                    </select>
+                    <div class="error-message" id="roleError"></div>
+                </div>
 
-    <div class="form-group">
-        <label for="role">Role</label>
-        <select id="role" name="role" required>
-           <option value="" disabled selected>Select a Role</option>
-           <option value="Field Manager">Field Manager</option>
-           <option value="Engineer">Engineer</option>
-        </select>
-        <div class="error-message" id="roleError"></div>
-    </div>
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Employee</button>
+            </form>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Employee</button>
-</form>
+            <script>
+              document.getElementById('employeeForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
 
-<script>
-  document.getElementById('employeeForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+                const formData = {
+                  username: document.getElementById('username').value.trim(),
+                  password: document.getElementById('password').value,
+                  firstname: document.getElementById('firstname').value.trim(),
+                  lastname: document.getElementById('lastname').value.trim(),
+                  role: document.getElementById('role').value
+                };
 
-    const formData = {
-      username: document.getElementById('username').value.trim(),
-      password: document.getElementById('password').value,
-      firstname: document.getElementById('firstname').value.trim(),
-      lastname: document.getElementById('lastname').value.trim(),
-      role: document.getElementById('role').value
-    };
+                try {
+                  const response = await fetch('/users', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                  });
 
-    try {
-      const response = await fetch('/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+                  if (response.ok) {
+                    alert('User created successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to create user'}`);
+                  }
+                } catch (error) {
 
-      if (response.ok) {
-        alert('User created successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to create user'}`);
-      }
-    } catch (error) {
+                }
+              });
+            </script>
 
-    }
-  });
-</script>
+            <p style="text-align: left; padding-top: 20px;">Delete An Employee:</p>
 
-    <p style="text-align: left; padding-top: 20px;">Delete An Employee:</p>
+            <form id="killEmployeeForm">
 
-<form id="killEmployeeForm">
+                <div class="form-group">
+                    <label for="Employee Id">Employee Id</label>
+                    <input type="text" id="eid" name="eid" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
 
-    <div class="form-group">
-        <label for="Employee Id">Employee Id</label>
-        <input type="text" id="eid" name="eid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Employee</button>
+            </form>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Employee</button>
-</form>
-
-<script>
-  document.getElementById('killEmployeeForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const employeeId = document.getElementById('eid').value.trim();
-  
-
-    try {
-      const response = await fetch(`/users/${employeeId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert('User deleted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to delete user'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+            <script>
+              document.getElementById('killEmployeeForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
 
 
-    <p style="text-align: left; padding-top: 20px;">Delete The Company:</p>
+                const employeeId = document.getElementById('eid').value.trim();
+              
+
+                try {
+                  const response = await fetch(`/users/${employeeId}`, {
+                    method: 'DELETE',
+                  });
+
+                  if (response.ok) {
+                    alert('User deleted successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to delete user'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
 
 
-    <button id="deleteButton" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 50%">Delete Company</button>
+            <p style="text-align: left; padding-top: 20px;">Delete The Company:</p>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const deleteButton = document.getElementById('deleteButton');
 
-    deleteButton.addEventListener('click', async () => {
-      try {
-        // Send DELETE request to '/company'
-        const response = await fetch('/company', {
-          method: 'DELETE', // Specify the DELETE method
-          headers: {
-            'Content-Type': 'application/json', // Optional, for JSON request body if needed
-          },
-        });
+            <button id="deleteButton" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 50%">Delete Company</button>
 
-        if (response.ok) {
-          alert('Company deleted successfully');
-          // You can add code to update the page, redirect, etc.
-        } else {
-          alert('Failed to delete company');
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        alert('Error occurred while deleting the company');
-      }
-    });
-  });
-</script>
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const deleteButton = document.getElementById('deleteButton');
 
+                deleteButton.addEventListener('click', async () => {
+                  try {
+                    // Send DELETE request to '/company'
+                    const response = await fetch('/company', {
+                      method: 'DELETE', // Specify the DELETE method
+                      headers: {
+                        'Content-Type': 'application/json', // Optional, for JSON request body if needed
+                      },
+                    });
+
+                    if (response.ok) {
+                      alert('Company deleted successfully');
+                      // You can add code to update the page, redirect, etc.
+                    } else {
+                      alert('Failed to delete company');
+                    }
+                  } catch (err) {
+                    console.error('Error:', err);
+                    alert('Error occurred while deleting the company');
+                  }
+                });
+              });
+            </script>
 
 
 
 
-        
+
+                
 
         {{else}}
         {{#ifCond user.role "Field Manager"}}
@@ -233,281 +229,281 @@
 
             <ul id="projectList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/projects');
-      const projects = await res.json();
-
-      const projectList = document.getElementById('projectList');
-
-      // Clear the list first (optional)
-      projectList.innerHTML = '';
-
-      // Loop through users and add to the list
-      projects.forEach(project => {
-        const li = document.createElement('li');
-
-        li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - Project Id: ${project._id} - Employees At Project: ${project.members}`;
-        projectList.appendChild(li);
-    });
-
-    } catch (err) {
-      console.error('Failed to fetch projects:', err);
-    }
-    });
-</script>
-
-
-        <p style="text-align: left; padding-top: 20px;">Create A Project:</p>
-
-<form id="projectForm">
-    <div class="form-group">
-        <label for="title">Title</label>
-        <input type="text" id="title" name="title" required>
-        <div class="error-message" id="usernameError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Description</label>
-        <input type="description" id="description" name="description" required
-    </div>
-
-    <div class="form-group">
-        <label for="budget">Budget</label>
-        <input type="text" id="budget" name="budget" required>
-    </div>
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Project</button>
-</form>
-
-<script>
-  document.getElementById('projectForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-    const formData = {
-      title: document.getElementById('title').value.trim(),
-      description: document.getElementById('description').value,
-      budget: document.getElementById('budget').value.trim(),
-    };
-
-    try {
-      const response = await fetch('/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        alert('Project created successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to create project'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
-
-    <p style="text-align: left; padding-top: 20px;">Delete A Project:</p>
-
-<form id="killProjectForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="pid" name="pid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Project</button>
-</form>
-
-<script>
-  document.getElementById('killProjectForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('pid').value.trim();
-  
-
-    try {
-      const response = await fetch(`/projects/${projectId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert('Project deleted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to delete project'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
-
-
-        <p style="text-align: left; padding-top: 20px;">Update A Project:</p>
-
-<form id="projectUpdateForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="Upid" name="Upid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Description</label>
-        <input type="text" id="Udescription" name="Udescription">
-    </div>
-
-    <div class="form-group">
-        <label for="budget">Budget</label>
-        <input type="text" id="Ubudget" name="Ubudget">
-    </div>
-
-    <div class="form-group">
-        <label for="Ustatus">Status</label>
-        <select id="Ustatus" name="Ustatus" required>
-           <option value="" disabled selected>Select a Status</option>
-           <option value="Pending">Pending</option>
-           <option value="InProgress">In Progress</option>
-           <option value="Complete">Completed</option>
-        </select>
-        <div class="error-message" id="roleError"></div>
-    </div>
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Project</button>
-</form>
-
-<script>
-  document.getElementById('projectUpdateForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-    const projectId = document.getElementById('Upid').value.trim();
-
-    const formData = {
-      status: document.getElementById('Ustatus').value.trim(),
-      description: document.getElementById('Udescription').value,
-      budget: document.getElementById('Ubudget').value.trim(),
-    };
-
-    try {
-      const response = await fetch(`/projects/${projectId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        alert('Project updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to update project'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
-
-        <p style="text-align: left; padding-top: 20px;">Add Employee To Project:</p>
-
-<form id="projectEmployeeForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="AEpid" name="AEpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Employee Id</label>
-        <input type="text" id="AEeid" name="AEeid" required>
-    </div>
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Employee</button>
-</form>
-
-<script>
-  document.getElementById('projectEmployeeForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('AEpid').value.trim();
-    const employeeId = document.getElementById('AEeid').value.trim();
-  
-
-    try {
-      const response = await fetch(`/projects/${projectId}/members/${employeeId}`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        alert('Employee added successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to add Employee'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
-
-
-        <p style="text-align: left; padding-top: 20px;">Remove Employee From Project:</p>
-
-<form id="projectEmployeeRemovalForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="DEpid" name="DEpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Employee Id</label>
-        <input type="text" id="DEeid" name="DEeid" required>
-    </div>
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Employee</button>
-</form>
-
-<script>
-  document.getElementById('projectEmployeeRemovalForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('DEpid').value.trim();
-    const employeeId = document.getElementById('DEeid').value.trim();
-  
-
-    try {
-      const response = await fetch(`/projects/${projectId}/members/${employeeId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert('Employee removed successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to remove Employee'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                  const res = await fetch('/projects');
+                  const projects = await res.json();
+
+                  const projectList = document.getElementById('projectList');
+
+                  // Clear the list first (optional)
+                  projectList.innerHTML = '';
+
+                  // Loop through users and add to the list
+                  projects.forEach(project => {
+                    const li = document.createElement('li');
+
+                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - Project Id: ${project._id} - Employees At Project: ${project.members}`;
+                    projectList.appendChild(li);
+                });
+
+                } catch (err) {
+                  console.error('Failed to fetch projects:', err);
+                }
+                });
+            </script>
+
+
+            <p style="text-align: left; padding-top: 20px;">Create A Project:</p>
+
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="description" id="description" name="description" required
+                </div>
+
+                <div class="form-group">
+                    <label for="budget">Budget</label>
+                    <input type="text" id="budget" name="budget" required>
+                </div>
+
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Create Project</button>
+            </form>
+
+            <script>
+              document.getElementById('projectForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
+
+                const formData = {
+                  title: document.getElementById('title').value.trim(),
+                  description: document.getElementById('description').value,
+                  budget: document.getElementById('budget').value.trim(),
+                };
+
+                try {
+                  const response = await fetch('/projects', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                  });
+
+                  if (response.ok) {
+                    alert('Project created successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to create project'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
+
+            <p style="text-align: left; padding-top: 20px;">Delete A Project:</p>
+
+            <form id="killProjectForm">
+
+                <div class="form-group">
+                    <label for="Project Id">Project Id</label>
+                    <input type="text" id="pid" name="pid" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Project</button>
+            </form>
+
+            <script>
+              document.getElementById('killProjectForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
+
+
+                const projectId = document.getElementById('pid').value.trim();
+              
+
+                try {
+                  const response = await fetch(`/projects/${projectId}`, {
+                    method: 'DELETE',
+                  });
+
+                  if (response.ok) {
+                    alert('Project deleted successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to delete project'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
+
+
+            <p style="text-align: left; padding-top: 20px;">Update A Project:</p>
+
+            <form id="projectUpdateForm">
+
+                <div class="form-group">
+                    <label for="Project Id">Project Id</label>
+                    <input type="text" id="Upid" name="Upid" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="Udescription" name="Udescription">
+                </div>
+
+                <div class="form-group">
+                    <label for="budget">Budget</label>
+                    <input type="text" id="Ubudget" name="Ubudget">
+                </div>
+
+                <div class="form-group">
+                    <label for="Ustatus">Status</label>
+                    <select id="Ustatus" name="Ustatus" required>
+                       <option value="" disabled selected>Select a Status</option>
+                       <option value="Pending">Pending</option>
+                       <option value="InProgress">In Progress</option>
+                       <option value="Complete">Completed</option>
+                    </select>
+                    <div class="error-message" id="roleError"></div>
+                </div>
+
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Project</button>
+            </form>
+
+            <script>
+              document.getElementById('projectUpdateForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
+
+                const projectId = document.getElementById('Upid').value.trim();
+
+                const formData = {
+                  status: document.getElementById('Ustatus').value.trim(),
+                  description: document.getElementById('Udescription').value,
+                  budget: document.getElementById('Ubudget').value.trim(),
+                };
+
+                try {
+                  const response = await fetch(`/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                  });
+
+                  if (response.ok) {
+                    alert('Project updated successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to update project'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
+
+            <p style="text-align: left; padding-top: 20px;">Add Employee To Project:</p>
+
+            <form id="projectEmployeeForm">
+
+                <div class="form-group">
+                    <label for="Project Id">Project Id</label>
+                    <input type="text" id="AEpid" name="AEpid" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Employee Id</label>
+                    <input type="text" id="AEeid" name="AEeid" required>
+                </div>
+
+
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Employee</button>
+            </form>
+
+            <script>
+              document.getElementById('projectEmployeeForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
+
+
+                const projectId = document.getElementById('AEpid').value.trim();
+                const employeeId = document.getElementById('AEeid').value.trim();
+              
+
+                try {
+                  const response = await fetch(`/projects/${projectId}/members/${employeeId}`, {
+                    method: 'POST',
+                  });
+
+                  if (response.ok) {
+                    alert('Employee added successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to add Employee'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
+
+
+            <p style="text-align: left; padding-top: 20px;">Remove Employee From Project:</p>
+
+            <form id="projectEmployeeRemovalForm">
+
+                <div class="form-group">
+                    <label for="Project Id">Project Id</label>
+                    <input type="text" id="DEpid" name="DEpid" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Employee Id</label>
+                    <input type="text" id="DEeid" name="DEeid" required>
+                </div>
+
+
+                <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Employee</button>
+            </form>
+
+            <script>
+              document.getElementById('projectEmployeeRemovalForm').addEventListener('submit', async function (e) {
+                e.preventDefault(); // Stop the normal form submission
+
+
+                const projectId = document.getElementById('DEpid').value.trim();
+                const employeeId = document.getElementById('DEeid').value.trim();
+              
+
+                try {
+                  const response = await fetch(`/projects/${projectId}/members/${employeeId}`, {
+                    method: 'DELETE',
+                  });
+
+                  if (response.ok) {
+                    alert('Employee removed successfully!');
+                  } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to remove Employee'}`);
+                  }
+                } catch (error) {
+
+                }
+              });
+            </script>
 
 
 
@@ -519,29 +515,29 @@
 
             <ul id="projectList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/projects');
-      const projects = await res.json();
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                  const res = await fetch('/projects');
+                  const projects = await res.json();
 
-      const projectList = document.getElementById('projectList');
+                  const projectList = document.getElementById('projectList');
 
-      // Clear the list first (optional)
-      projectList.innerHTML = '';
+                  // Clear the list first (optional)
+                  projectList.innerHTML = '';
 
-      // Loop through users and add to the list
-      projects.forEach(project => {
-        const li = document.createElement('li');
-        li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - ${project._id}  - Employees At Project: ${project.members}`;
-        projectList.appendChild(li);
-    });
+                  // Loop through users and add to the list
+                  projects.forEach(project => {
+                    const li = document.createElement('li');
+                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - ${project._id}  - Employees At Project: ${project.members}`;
+                    projectList.appendChild(li);
+                });
 
-    } catch (err) {
-      console.error('Failed to fetch projects:', err);
-    }
-    });
-</script>
+                } catch (err) {
+                  console.error('Failed to fetch projects:', err);
+                }
+                });
+            </script>
                 
                 
                 
@@ -579,465 +575,465 @@
     {{else}}
     {{#ifCond user.role "Field Manager"}}
 
-<p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
+    <p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
 
- <ul id="taskIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
+     <ul id="taskIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<p style="text-align: left; padding-top: 20px;">View TaskIds of a Project:</p>
+    <p style="text-align: left; padding-top: 20px;">View TaskIds of a Project:</p>
 
-<form id="projectATaskViewForm">
+    <form id="projectATaskViewForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PTVpid" name="PTVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PTVpid" name="PTVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View TaskIds</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View TaskIds</button>
+    </form>
 
-<script>
-    document.getElementById('projectATaskViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
+    <script>
+        document.getElementById('projectATaskViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
+
+
+          const projectId = document.getElementById('PTVpid').value.trim();
+
+
+          const res = await fetch(`/projects/${projectId}/tasks`);
+          const project = await res.json();
+
+          console.log(project);
+
+          const projectList = document.getElementById('taskIdList');
+
+          projectList.innerHTML = '';
+
+          project.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = `Id: ${task._id}, Assigned To: ${task.assignedTo}`;
+            projectList.appendChild(li);
+        });
+
+        } catch (err) {
+
+          const projectList = document.getElementById('taskIdList');
+
+          projectList.innerHTML = "Couldnt Get Tasks";
+
+        }
+        });
+    </script>
+
+
+
+    <p style="text-align: left; padding-top: 20px;">Current Task Info:</p>
+
+    <p id="taskWindow">No Task Selected</p>
+
+    <p style="text-align: left; padding-top: 20px;">View Task of Project:</p>
+
+    <form id="projectTaskViewForm">
+
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PVpid" name="PVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Task Id">Task Id</label>
+            <input type="text" id="TVtid" name="TVtid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Task</button>
+    </form>
+
+    <script>
+        document.getElementById('projectTaskViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
+
+
+          const projectId = document.getElementById('PVpid').value.trim();
+          const taskId = document.getElementById('TVtid').value.trim();
+
+
+          const res = await fetch(`/projects/${projectId}/tasks/${taskId}`);
+          const project = await res.json();
+
+          const projectList = document.getElementById('taskWindow');
+
+          if(project.title !== undefined) {
+          projectList.innerHTML = `${project.title}: ${project.description} - ${project.status} - Cost: ${project.cost} - Assigned To: ${project.assignedTo} - Task Id: ${project._id}`;
+          } else {
+            projectList.innerHTML = 'Couldnt get Task';
+          }
+
+        } catch (err) {
+
+          const projectList = document.getElementById('taskWindow');
+
+          projectList.innerHTML = "Couldnt Get Task";
+
+        }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">Add Task To Project:</p>
+
+    <form id="projectTaskForm">
+
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="TFpid" name="TFpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Employee Id">Employee Id</label>
+            <input type="text" id="TFeid" name="TFeid" required>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="TFtitle" name="TFtitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <input type="text" id="TFdesc" name="TFdesc" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Cost</label>
+            <input type="text" id="TFcost" name="TFcost" required>
+        </div>
+
+
+
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Task</button>
+    </form>
+
+    <script>
+      document.getElementById('projectTaskForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
+
+
+        const projectId = document.getElementById('TFpid').value.trim();
       
 
+        const formData = {
+          cost: document.getElementById('TFcost').value.trim(),
+          description: document.getElementById('TFdesc').value,
+          assignedTo: document.getElementById('TFeid').value.trim(),
+          title: document.getElementById('TFtitle').value.trim()
+        };
 
-      const projectId = document.getElementById('PTVpid').value.trim();
+        try {
+          const response = await fetch(`/projects/${projectId}/tasks`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
 
+          if (response.ok) {
+            alert('Task posted successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to post task'}`);
+          }
+        } catch (error) {
 
-      const res = await fetch(`/projects/${projectId}/tasks`);
-      const project = await res.json();
-
-      console.log(project);
-
-      const projectList = document.getElementById('taskIdList');
-
-      projectList.innerHTML = '';
-
-      project.forEach(task => {
-        const li = document.createElement('li');
-        li.textContent = `Id: ${task._id}, Assigned To: ${task.assignedTo}`;
-        projectList.appendChild(li);
-    });
-
-    } catch (err) {
-
-      const projectList = document.getElementById('taskIdList');
-
-      projectList.innerHTML = "Couldnt Get Tasks";
-
-    }
-    });
-</script>
-
-
-
-<p style="text-align: left; padding-top: 20px;">Current Task Info:</p>
-
-<p id="taskWindow">No Task Selected</p>
-
-<p style="text-align: left; padding-top: 20px;">View Task of Project:</p>
-
-<form id="projectTaskViewForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PVpid" name="PVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="Task Id">Task Id</label>
-        <input type="text" id="TVtid" name="TVtid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Task</button>
-</form>
-
-<script>
-    document.getElementById('projectTaskViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
-      
-
-
-      const projectId = document.getElementById('PVpid').value.trim();
-      const taskId = document.getElementById('TVtid').value.trim();
-
-
-      const res = await fetch(`/projects/${projectId}/tasks/${taskId}`);
-      const project = await res.json();
-
-      const projectList = document.getElementById('taskWindow');
-
-      if(project.title !== undefined) {
-      projectList.innerHTML = `${project.title}: ${project.description} - ${project.status} - Cost: ${project.cost} - Assigned To: ${project.assignedTo} - Task Id: ${project._id}`;
-      } else {
-        projectList.innerHTML = 'Couldnt get Task';
-      }
-
-    } catch (err) {
-
-      const projectList = document.getElementById('taskWindow');
-
-      projectList.innerHTML = "Couldnt Get Task";
-
-    }
-    });
-</script>
-
-<p style="text-align: left; padding-top: 20px;">Add Task To Project:</p>
-
-<form id="projectTaskForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="TFpid" name="TFpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="Employee Id">Employee Id</label>
-        <input type="text" id="TFeid" name="TFeid" required>
-    </div>
-
-    <div class="form-group">
-        <label for="title">Title</label>
-        <input type="text" id="TFtitle" name="TFtitle" required>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Description</label>
-        <input type="text" id="TFdesc" name="TFdesc" required>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Cost</label>
-        <input type="text" id="TFcost" name="TFcost" required>
-    </div>
-
-
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Task</button>
-</form>
-
-<script>
-  document.getElementById('projectTaskForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('TFpid').value.trim();
-  
-
-    const formData = {
-      cost: document.getElementById('TFcost').value.trim(),
-      description: document.getElementById('TFdesc').value,
-      assignedTo: document.getElementById('TFeid').value.trim(),
-      title: document.getElementById('TFtitle').value.trim()
-    };
-
-    try {
-      const response = await fetch(`/projects/${projectId}/tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        }
       });
-
-      if (response.ok) {
-        alert('Task posted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to post task'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
         <p style="text-align: left; padding-top: 20px;">Remove Task From Project:</p>
 
-<form id="projectTaskRemovalForm">
+    <form id="projectTaskRemovalForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="RTpid" name="RTpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="RTpid" name="RTpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="description">Task Id</label>
-        <input type="text" id="RTtid" name="RTtid" required>
-    </div>
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Task</button>
-</form>
-
-<script>
-  document.getElementById('projectTaskRemovalForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+        <div class="form-group">
+            <label for="description">Task Id</label>
+            <input type="text" id="RTtid" name="RTtid" required>
+        </div>
 
 
-    const projectId = document.getElementById('RTpid').value.trim();
-    const taskId = document.getElementById('RTtid').value.trim();
-  
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Task</button>
+    </form>
 
-    try {
-      const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
-        method: 'DELETE',
+    <script>
+      document.getElementById('projectTaskRemovalForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
+
+
+        const projectId = document.getElementById('RTpid').value.trim();
+        const taskId = document.getElementById('RTtid').value.trim();
+      
+
+        try {
+          const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            alert('Task removed successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to remove Task'}`);
+          }
+        } catch (error) {
+
+        }
       });
+    </script>
 
-      if (response.ok) {
-        alert('Task removed successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to remove Task'}`);
-      }
-    } catch (error) {
+      <p style="text-align: left; padding-top: 20px;">Update A Task:</p>
 
-    }
-  });
-</script>
+    <form id="projectTaskUpdateForm">
 
-  <p style="text-align: left; padding-top: 20px;">Update A Task:</p>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PUpid" name="PUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-<form id="projectTaskUpdateForm">
+        <div class="form-group">
+            <label for="Task Id">Task Id</label>
+            <input type="text" id="TUpid" name="TUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PUpid" name="PUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="TUstatus">Status</label>
+            <select id="TUstatus" name="TUstatus" required>
+               <option value="" disabled selected>Select a Status</option>
+               <option value="Pending">Pending</option>
+               <option value="InProgress">In Progress</option>
+               <option value="Complete">Completed</option>
+            </select>
+            <div class="error-message" id="roleError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Task Id">Task Id</label>
-        <input type="text" id="TUpid" name="TUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Task</button>
+    </form>
 
-    <div class="form-group">
-        <label for="TUstatus">Status</label>
-        <select id="TUstatus" name="TUstatus" required>
-           <option value="" disabled selected>Select a Status</option>
-           <option value="Pending">Pending</option>
-           <option value="InProgress">In Progress</option>
-           <option value="Complete">Completed</option>
-        </select>
-        <div class="error-message" id="roleError"></div>
-    </div>
+    <script>
+      document.getElementById('projectTaskUpdateForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Task</button>
-</form>
+        const projectId = document.getElementById('PUpid').value.trim();
+        const taskId = document.getElementById('TUpid').value.trim();
 
-<script>
-  document.getElementById('projectTaskUpdateForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+        const formData = {
+          status: document.getElementById('TUstatus').value.trim(),
+        };
 
-    const projectId = document.getElementById('PUpid').value.trim();
-    const taskId = document.getElementById('TUpid').value.trim();
+        try {
+          const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
 
-    const formData = {
-      status: document.getElementById('TUstatus').value.trim(),
-    };
+          if (response.ok) {
+            alert('Task updated successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to update Task'}`);
+          }
+        } catch (error) {
 
-    try {
-      const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        }
       });
-
-      if (response.ok) {
-        alert('Task updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to update Task'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
     {{else}}
     {{#ifCond user.role "Engineer"}}
 
-<p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
+    <p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
 
- <ul id="taskIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
+     <ul id="taskIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<p style="text-align: left; padding-top: 20px;">View TaskIds of a Project:</p>
+    <p style="text-align: left; padding-top: 20px;">View TaskIds of a Project:</p>
 
-<form id="projectATaskViewForm">
+    <form id="projectATaskViewForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PTVpid" name="PTVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PTVpid" name="PTVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View TaskIds</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View TaskIds</button>
+    </form>
 
-<script>
-    document.getElementById('projectATaskViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
-      
-
-
-      const projectId = document.getElementById('PTVpid').value.trim();
+    <script>
+        document.getElementById('projectATaskViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
 
 
-      const res = await fetch(`/projects/${projectId}/tasks`);
-      const project = await res.json();
-
-      console.log(project);
-
-      const projectList = document.getElementById('taskIdList');
-
-      projectList.innerHTML = '';
-
-      project.forEach(task => {
-        const li = document.createElement('li');
-        li.textContent = `Id: ${task._id}, Assigned To: ${task.assignedTo}`;
-        projectList.appendChild(li);
-    });
-
-    } catch (err) {
-
-      const projectList = document.getElementById('taskIdList');
-
-      projectList.innerHTML = "Couldnt Get Tasks";
-
-    }
-    });
-</script>
-
-<p style="text-align: left; padding-top: 20px;">Current Task Info:</p>
-
-<p id="taskWindow">No Task Selected</p>
-
-<p style="text-align: left; padding-top: 20px;">View Task of Project:</p>
-
-<form id="projectTaskViewForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PVpid" name="PVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="Task Id">Task Id</label>
-        <input type="text" id="TVtid" name="TVtid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Task</button>
-</form>
-
-<script>
-    document.getElementById('projectTaskViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
-      
+          const projectId = document.getElementById('PTVpid').value.trim();
 
 
-      const projectId = document.getElementById('PVpid').value.trim();
-      const taskId = document.getElementById('TVtid').value.trim();
+          const res = await fetch(`/projects/${projectId}/tasks`);
+          const project = await res.json();
+
+          console.log(project);
+
+          const projectList = document.getElementById('taskIdList');
+
+          projectList.innerHTML = '';
+
+          project.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = `Id: ${task._id}, Assigned To: ${task.assignedTo}`;
+            projectList.appendChild(li);
+        });
+
+        } catch (err) {
+
+          const projectList = document.getElementById('taskIdList');
+
+          projectList.innerHTML = "Couldnt Get Tasks";
+
+        }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">Current Task Info:</p>
+
+    <p id="taskWindow">No Task Selected</p>
+
+    <p style="text-align: left; padding-top: 20px;">View Task of Project:</p>
+
+    <form id="projectTaskViewForm">
+
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PVpid" name="PVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Task Id">Task Id</label>
+            <input type="text" id="TVtid" name="TVtid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Task</button>
+    </form>
+
+    <script>
+        document.getElementById('projectTaskViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
 
 
-      const res = await fetch(`/projects/${projectId}/tasks/${taskId}`);
-      const project = await res.json();
+          const projectId = document.getElementById('PVpid').value.trim();
+          const taskId = document.getElementById('TVtid').value.trim();
 
-      const projectList = document.getElementById('taskWindow');
 
-      if(project.title !== undefined) {
-      projectList.innerHTML = `${project.title}: ${project.description} - ${project.status} - Cost: ${project.cost} - Assigned To: ${project.assignedTo} - Task Id: ${project._id}`;
-      } else {
-        projectList.innerHTML = 'Couldnt get Task';
-      }
+          const res = await fetch(`/projects/${projectId}/tasks/${taskId}`);
+          const project = await res.json();
 
-    } catch (err) {
+          const projectList = document.getElementById('taskWindow');
 
-      const projectList = document.getElementById('taskWindow');
+          if(project.title !== undefined) {
+          projectList.innerHTML = `${project.title}: ${project.description} - ${project.status} - Cost: ${project.cost} - Assigned To: ${project.assignedTo} - Task Id: ${project._id}`;
+          } else {
+            projectList.innerHTML = 'Couldnt get Task';
+          }
 
-      projectList.innerHTML = "Couldnt Get Task";
+        } catch (err) {
 
-    }
-    });
-</script>
+          const projectList = document.getElementById('taskWindow');
 
-  <p style="text-align: left; padding-top: 20px;">Update A Task:</p>
+          projectList.innerHTML = "Couldnt Get Task";
 
-<form id="projectTaskUpdateForm">
+        }
+        });
+    </script>
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PUpid" name="PUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+      <p style="text-align: left; padding-top: 20px;">Update A Task:</p>
 
-    <div class="form-group">
-        <label for="Task Id">Task Id</label>
-        <input type="text" id="TUpid" name="TUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+    <form id="projectTaskUpdateForm">
 
-    <div class="form-group">
-        <label for="TUstatus">Status</label>
-        <select id="TUstatus" name="TUstatus" required>
-           <option value="" disabled selected>Select a Status</option>
-           <option value="Pending">Pending</option>
-           <option value="InProgress">In Progress</option>
-           <option value="Complete">Completed</option>
-        </select>
-        <div class="error-message" id="roleError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PUpid" name="PUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Task</button>
-</form>
+        <div class="form-group">
+            <label for="Task Id">Task Id</label>
+            <input type="text" id="TUpid" name="TUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-<script>
-  document.getElementById('projectTaskUpdateForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+        <div class="form-group">
+            <label for="TUstatus">Status</label>
+            <select id="TUstatus" name="TUstatus" required>
+               <option value="" disabled selected>Select a Status</option>
+               <option value="Pending">Pending</option>
+               <option value="InProgress">In Progress</option>
+               <option value="Complete">Completed</option>
+            </select>
+            <div class="error-message" id="roleError"></div>
+        </div>
 
-    const projectId = document.getElementById('PUpid').value.trim();
-    const taskId = document.getElementById('TUpid').value.trim();
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Task</button>
+    </form>
 
-    const formData = {
-      status: document.getElementById('TUstatus').value.trim(),
-    };
+    <script>
+      document.getElementById('projectTaskUpdateForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
 
-    try {
-      const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        const projectId = document.getElementById('PUpid').value.trim();
+        const taskId = document.getElementById('TUpid').value.trim();
+
+        const formData = {
+          status: document.getElementById('TUstatus').value.trim(),
+        };
+
+        try {
+          const response = await fetch(`/projects/${projectId}/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+
+          if (response.ok) {
+            alert('Task updated successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to update Task'}`);
+          }
+        } catch (error) {
+
+        }
       });
-
-      if (response.ok) {
-        alert('Task updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to update Task'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
 
 
@@ -1062,396 +1058,999 @@
     {{else}}
     {{#ifCond user.role "Field Manager"}}
 
-<p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
+    <p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
 
- <ul id="blueprintIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
+     <ul id="blueprintIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<p style="text-align: left; padding-top: 20px;">View BlueprintIds of a Project:</p>
+    <p style="text-align: left; padding-top: 20px;">View BlueprintIds of a Project:</p>
 
-<form id="projectABlueprintViewForm">
+    <form id="projectABlueprintViewForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PBVpid" name="PBVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PBVpid" name="PBVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Blueprints</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Blueprints</button>
+    </form>
 
-<script>
-    document.getElementById('projectABlueprintViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
+    <script>
+        document.getElementById('projectABlueprintViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
+
+
+          const projectId = document.getElementById('PBVpid').value.trim();
+
+
+          const res = await fetch(`/projects/${projectId}/blueprints`);
+          const project = await res.json();
+
+          console.log(project);
+
+          const projectList = document.getElementById('blueprintIdList');
+
+          projectList.innerHTML = '';
+
+          project.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = `Id: ${task._id}, Title: ${task.title}, Tag: ${task.tags}`;
+            projectList.appendChild(li);
+        });
+
+        } catch (err) {
+
+          const projectList = document.getElementById('blueprintIdList');
+
+          projectList.innerHTML = "Couldnt Get Blueprints";
+
+        }
+        });
+    </script>
+
+
+    <p style="text-align: left; padding-top: 20px;">Add Blueprint To Project:</p>
+
+    <form id="projectBlueprintForm">
+
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="ABpid" name="ABpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Title</label>
+            <input type="text" id="ABtitle" name="ABdtitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Tag">Tag</label>
+            <input type="text" id="ABtag" name="ABtag" required>
+        </div>
+
+
+
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Blueprint</button>
+    </form>
+
+    <script>
+      document.getElementById('projectBlueprintForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
+
+
+        const projectId = document.getElementById('ABpid').value.trim();
       
 
+        const formData = {
+          tags: [document.getElementById('ABtag').value.trim()],
+          title: document.getElementById('ABtitle').value,
 
-      const projectId = document.getElementById('PBVpid').value.trim();
+        };
 
+        try {
+          const response = await fetch(`/projects/${projectId}/blueprints`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
 
-      const res = await fetch(`/projects/${projectId}/blueprints`);
-      const project = await res.json();
+          if (response.ok) {
+            alert('Blueprint posted successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to post blueprint'}`);
+          }
+        } catch (error) {
 
-      console.log(project);
-
-      const projectList = document.getElementById('blueprintIdList');
-
-      projectList.innerHTML = '';
-
-      project.forEach(task => {
-        const li = document.createElement('li');
-        li.textContent = `Id: ${task._id}, Title: ${task.title}, Tag: ${task.tags}`;
-        projectList.appendChild(li);
-    });
-
-    } catch (err) {
-
-      const projectList = document.getElementById('blueprintIdList');
-
-      projectList.innerHTML = "Couldnt Get Blueprints";
-
-    }
-    });
-</script>
-
-
-<p style="text-align: left; padding-top: 20px;">Add Blueprint To Project:</p>
-
-<form id="projectBlueprintForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="ABpid" name="ABpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Title</label>
-        <input type="text" id="ABtitle" name="ABdtitle" required>
-    </div>
-
-    <div class="form-group">
-        <label for="Tag">Tag</label>
-        <input type="text" id="ABtag" name="ABtag" required>
-    </div>
-
-
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Blueprint</button>
-</form>
-
-<script>
-  document.getElementById('projectBlueprintForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('ABpid').value.trim();
-  
-
-    const formData = {
-      tags: [document.getElementById('ABtag').value.trim()],
-      title: document.getElementById('ABtitle').value,
-
-    };
-
-    try {
-      const response = await fetch(`/projects/${projectId}/blueprints`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        }
       });
-
-      if (response.ok) {
-        alert('Blueprint posted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to post blueprint'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
         <p style="text-align: left; padding-top: 20px;">Update Blueprint in Project:</p>
 
-<form id="projectBlueprintUpdateForm">
+    <form id="projectBlueprintUpdateForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="BUpid" name="BUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="BUpid" name="BUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Blueprint Id">Blueprint Id</label>
-        <input type="text" id="BUbid" name="BUbid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Blueprint Id">Blueprint Id</label>
+            <input type="text" id="BUbid" name="BUbid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Tag">Tag</label>
-        <input type="text" id="UBtag" name="UBtag" required>
-    </div>
+        <div class="form-group">
+            <label for="Tag">Tag</label>
+            <input type="text" id="UBtag" name="UBtag" required>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Blueprint</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Blueprint</button>
+    </form>
 
-<script>
-  document.getElementById('projectBlueprintUpdateForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+    <script>
+      document.getElementById('projectBlueprintUpdateForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
 
-    const projectId = document.getElementById('BUpid').value.trim();
-    const blueprintId = document.getElementById('BUbid').value.trim();
+        const projectId = document.getElementById('BUpid').value.trim();
+        const blueprintId = document.getElementById('BUbid').value.trim();
 
-    const formData = {
-      tags: [document.getElementById('UBtag').value.trim()],
-      title: "filler since it is required but not used?"
-    };
+        const formData = {
+          tags: [document.getElementById('UBtag').value.trim()],
+          title: "filler since it is required but not used?"
+        };
 
-    try {
-      const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        try {
+          const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+
+          if (response.ok) {
+            alert('Blueprint updated successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to update Blueprint'}`);
+          }
+        } catch (error) {
+
+        }
       });
-
-      if (response.ok) {
-        alert('Blueprint updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to update Blueprint'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
         <p style="text-align: left; padding-top: 20px;">Remove Blueprint From Project:</p>
 
-<form id="projectBlueprintRemovalForm">
+    <form id="projectBlueprintRemovalForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="RBpid" name="RBpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="RBpid" name="RBpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="description">Blueprint Id</label>
-        <input type="text" id="RBbid" name="RBbid" required>
-    </div>
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Blueprint</button>
-</form>
-
-<script>
-  document.getElementById('projectBlueprintRemovalForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+        <div class="form-group">
+            <label for="description">Blueprint Id</label>
+            <input type="text" id="RBbid" name="RBbid" required>
+        </div>
 
 
-    const projectId = document.getElementById('RBpid').value.trim();
-    const blueprintId = document.getElementById('RBbid').value.trim();
-  
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Remove Blueprint</button>
+    </form>
 
-    try {
-      const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
-        method: 'DELETE',
+    <script>
+      document.getElementById('projectBlueprintRemovalForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
+
+
+        const projectId = document.getElementById('RBpid').value.trim();
+        const blueprintId = document.getElementById('RBbid').value.trim();
+      
+
+        try {
+          const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            alert('Blueprint removed successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to remove blueprint'}`);
+          }
+        } catch (error) {
+
+        }
       });
-
-      if (response.ok) {
-        alert('Blueprint removed successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to remove blueprint'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
-
+    </script>
 
     {{else}}
     {{#ifCond user.role "Engineer"}}
 
-<p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
+    <p style="text-align: left; padding-top: 20px;">Current Project Info:</p>
 
- <ul id="blueprintIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
+     <ul id="blueprintIdList" style="padding-left: 20px; padding-right: 20px;"></ul>
 
-<p style="text-align: left; padding-top: 20px;">View BlueprintIds of a Project:</p>
+    <p style="text-align: left; padding-top: 20px;">View BlueprintIds of a Project:</p>
 
-<form id="projectABlueprintViewForm">
+    <form id="projectABlueprintViewForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="PBVpid" name="PBVpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="PBVpid" name="PBVpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Blueprints</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Blueprints</button>
+    </form>
 
-<script>
-    document.getElementById('projectABlueprintViewForm').addEventListener('submit', async function (e) {
-      e.preventDefault(); // Stop the normal form submission
-    try {
+    <script>
+        document.getElementById('projectABlueprintViewForm').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Stop the normal form submission
+        try {
+          
+
+
+          const projectId = document.getElementById('PBVpid').value.trim();
+
+
+          const res = await fetch(`/projects/${projectId}/blueprints`);
+          const project = await res.json();
+
+          console.log(project);
+
+          const projectList = document.getElementById('blueprintIdList');
+
+          projectList.innerHTML = '';
+
+          project.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = `Id: ${task._id}, Title: ${task.title}, Tag: ${task.tags}`;
+            projectList.appendChild(li);
+        });
+
+        } catch (err) {
+
+          const projectList = document.getElementById('blueprintIdList');
+
+          projectList.innerHTML = "Couldnt Get Blueprints";
+
+        }
+        });
+    </script>
+
+
+    <p style="text-align: left; padding-top: 20px;">Add Blueprint To Project:</p>
+
+    <form id="projectBlueprintForm">
+
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="ABpid" name="ABpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Title</label>
+            <input type="text" id="ABtitle" name="ABdtitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Tag">Tag</label>
+            <input type="text" id="ABtag" name="ABtag" required>
+        </div>
+
+
+
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Blueprint</button>
+    </form>
+
+    <script>
+      document.getElementById('projectBlueprintForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
+
+
+        const projectId = document.getElementById('ABpid').value.trim();
       
 
+        const formData = {
+          tags: [document.getElementById('ABtag').value.trim()],
+          title: document.getElementById('ABtitle').value,
 
-      const projectId = document.getElementById('PBVpid').value.trim();
+        };
 
+        try {
+          const response = await fetch(`/projects/${projectId}/blueprints`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
 
-      const res = await fetch(`/projects/${projectId}/blueprints`);
-      const project = await res.json();
+          if (response.ok) {
+            alert('Blueprint posted successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to post blueprint'}`);
+          }
+        } catch (error) {
 
-      console.log(project);
-
-      const projectList = document.getElementById('blueprintIdList');
-
-      projectList.innerHTML = '';
-
-      project.forEach(task => {
-        const li = document.createElement('li');
-        li.textContent = `Id: ${task._id}, Title: ${task.title}, Tag: ${task.tags}`;
-        projectList.appendChild(li);
-    });
-
-    } catch (err) {
-
-      const projectList = document.getElementById('blueprintIdList');
-
-      projectList.innerHTML = "Couldnt Get Blueprints";
-
-    }
-    });
-</script>
-
-
-<p style="text-align: left; padding-top: 20px;">Add Blueprint To Project:</p>
-
-<form id="projectBlueprintForm">
-
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="ABpid" name="ABpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Title</label>
-        <input type="text" id="ABtitle" name="ABdtitle" required>
-    </div>
-
-    <div class="form-group">
-        <label for="Tag">Tag</label>
-        <input type="text" id="ABtag" name="ABtag" required>
-    </div>
-
-
-
-
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Blueprint</button>
-</form>
-
-<script>
-  document.getElementById('projectBlueprintForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
-
-
-    const projectId = document.getElementById('ABpid').value.trim();
-  
-
-    const formData = {
-      tags: [document.getElementById('ABtag').value.trim()],
-      title: document.getElementById('ABtitle').value,
-
-    };
-
-    try {
-      const response = await fetch(`/projects/${projectId}/blueprints`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        }
       });
-
-      if (response.ok) {
-        alert('Blueprint posted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to post blueprint'}`);
-      }
-    } catch (error) {
-
-    }
-  });
-</script>
+    </script>
 
         <p style="text-align: left; padding-top: 20px;">Update Blueprint in Project:</p>
 
-<form id="projectBlueprintUpdateForm">
+    <form id="projectBlueprintUpdateForm">
 
-    <div class="form-group">
-        <label for="Project Id">Project Id</label>
-        <input type="text" id="BUpid" name="BUpid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="BUpid" name="BUpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Blueprint Id">Blueprint Id</label>
-        <input type="text" id="BUbid" name="BUbid" required>
-        <div class="error-message" id="passwordError"></div>
-    </div>
+        <div class="form-group">
+            <label for="Blueprint Id">Blueprint Id</label>
+            <input type="text" id="BUbid" name="BUbid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
 
-    <div class="form-group">
-        <label for="Tag">Tag</label>
-        <input type="text" id="UBtag" name="UBtag" required>
-    </div>
+        <div class="form-group">
+            <label for="Tag">Tag</label>
+            <input type="text" id="UBtag" name="UBtag" required>
+        </div>
 
-    <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Blueprint</button>
-</form>
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Update Blueprint</button>
+    </form>
 
-<script>
-  document.getElementById('projectBlueprintUpdateForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Stop the normal form submission
+    <script>
+      document.getElementById('projectBlueprintUpdateForm').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Stop the normal form submission
 
-    const projectId = document.getElementById('BUpid').value.trim();
-    const blueprintId = document.getElementById('BUbid').value.trim();
+        const projectId = document.getElementById('BUpid').value.trim();
+        const blueprintId = document.getElementById('BUbid').value.trim();
 
-    const formData = {
-      tags: [document.getElementById('UBtag').value.trim()],
-      title: "filler since it is required but not used?"
-    };
+        const formData = {
+          tags: [document.getElementById('UBtag').value.trim()],
+          title: "filler since it is required but not used?"
+        };
 
-    try {
-      const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        try {
+          const response = await fetch(`/projects/${projectId}/blueprints/${blueprintId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+
+          if (response.ok) {
+            alert('Blueprint updated successfully!');
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'Failed to update Blueprint'}`);
+          }
+        } catch (error) {
+
+        }
       });
+    </script>
 
-      if (response.ok) {
-        alert('Blueprint updated successfully!');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to update Blueprint'}`);
-      }
-    } catch (error) {
+    {{else}}
+    <p>Role not recognized, how did you even get this far?</p>
+    {{/ifCond}}
+    {{/ifCond}}
+    {{/ifCond}}
+    {{else}}
+    <p>No role found, how did you even get this far?</p>
+    {{/if}}
 
-    }
-  });
-</script>
+</div>
+
+<div class="page-container">
+
+    {{#if user.role}}
+    {{#ifCond user.role "Owner"}}
+
+    {{else}}
+    {{#ifCond user.role "Field Manager"}}
+
+    <p style="text-align: left; padding-top: 20px;">Reports Management:</p>
+
+    <p style="text-align: left; padding-top: 20px;">View Reports:</p>
+    <ul id="reportList" style="padding-left: 20px; padding-right: 20px;"></ul>
+
+    <form id="viewReportsForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="VRpid" name="VRpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">View Reports</button>
+    </form>
+
+    <script>
+        document.getElementById('viewReportsForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('VRpid').value.trim();
+                const res = await fetch(`/projects/${projectId}/reports`);
+                const reports = await res.json();
+
+                const reportList = document.getElementById('reportList');
+                reportList.innerHTML = '';
+
+                reports.forEach(report => {
+                    const li = document.createElement('li');
+                    li.textContent = `Report ID: ${report._id}, Title: ${report.title}, Description: ${report.description}, Tags: ${report.tags.join(', ')}, File: ${report.fileURL || 'No file'}, Issues: ${report.issues.length}`;
+                    reportList.appendChild(li);
+                });
+            } catch (err) {
+                const reportList = document.getElementById('reportList');
+                reportList.innerHTML = "Couldn't Get Reports";
+            }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">Delete Report:</p>
+    <form id="deleteReportForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="DRpid" name="DRpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Report Id">Report Id</label>
+            <input type="text" id="DRrid" name="DRrid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Delete Report</button>
+    </form>
+
+    <script>
+        document.getElementById('deleteReportForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('DRpid').value.trim();
+                const reportId = document.getElementById('DRrid').value.trim();
+
+                const response = await fetch(`/projects/${projectId}/reports/${reportId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Report deleted successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to delete report'}`);
+                }
+            } catch (error) {
+                alert('Error occurred while deleting report');
+            }
+        });
+    </script>
+
+    {{else}}
+    {{#ifCond user.role "Engineer"}}
+
+    <p style="text-align: left; padding-top: 20px;">Reports Management:</p>
+
+    <p style="text-align: left; padding-top: 20px;">Add Report:</p>
+    <form id="addReportForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="ARpid" name="ARpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Title">Title</label>
+            <input type="text" id="ARtitle" name="ARtitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Description">Description</label>
+            <textarea id="ARdesc" name="ARdesc" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="Tags">Tags (comma-separated)</label>
+            <input type="text" id="ARtags" name="ARtags" placeholder="tag1, tag2, tag3">
+            <small>Enter tags separated by commas</small>
+        </div>
+
+        <div class="form-group">
+            <label for="File URL">File URL</label>
+            <input type="url" id="ARfileURL" name="ARfileURL" placeholder="https://example.com/file.pdf">
+            <small>Enter a valid URL to the report file</small>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Report</button>
+    </form>
+
+    <script>
+        document.getElementById('addReportForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('ARpid').value.trim();
+                const tagsInput = document.getElementById('ARtags').value.trim();
+                const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
+
+                const formData = {
+                    title: document.getElementById('ARtitle').value.trim(),
+                    description: document.getElementById('ARdesc').value.trim(),
+                    project: projectId,
+                    tags: tags,
+                    fileURL: document.getElementById('ARfileURL').value.trim() || undefined,
+                    issues: [] // Initialize empty issues array
+                };
+
+                const response = await fetch(`/projects/${projectId}/reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Report added successfully!');
+                    // Clear form
+                    document.getElementById('addReportForm').reset();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to add report'}`);
+                }
+            } catch (error) {
+                alert('Error occurred while adding report');
+            }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">Add Issue to Report:</p>
+    <form id="addIssueForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="AIpid" name="AIpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Report Id">Report Id</label>
+            <input type="text" id="AIrid" name="AIrid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Title">Issue Title</label>
+            <input type="text" id="AItitle" name="AItitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Description">Issue Description</label>
+            <textarea id="AIdesc" name="AIdesc" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Severity">Severity</label>
+            <select id="AIseverity" name="AIseverity" required>
+                <option value="" disabled selected>Select Severity</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Issue</button>
+    </form>
+
+    <script>
+        document.getElementById('addIssueForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('AIpid').value.trim();
+                const reportId = document.getElementById('AIrid').value.trim();
+                const formData = {
+                    title: document.getElementById('AItitle').value.trim(),
+                    description: document.getElementById('AIdesc').value.trim(),
+                    severity: document.getElementById('AIseverity').value,
+                    date: new Date().toISOString()
+                };
+
+                const response = await fetch(`/projects/${projectId}/reports/${reportId}/issues`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Issue added successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to add issue'}`);
+                }
+            } catch (error) {
+                alert('Error occurred while adding issue');
+            }
+        });
+    </script>
+
+    {{else}}
+    <p>Role not recognized, how did you even get this far?</p>
+    {{/ifCond}}
+    {{/ifCond}}
+    {{/ifCond}}
+    {{else}}
+    <p>No role found, how did you even get this far?</p>
+    {{/if}}
+
+</div>
+
+<div class="page-container">
+
+    {{#if user.role}}
+    {{#ifCond user.role "Owner"}}
+
+    {{else}}
+    {{#ifCond user.role "Field Manager"}}
+
+    <p style="text-align: left; padding-top: 20px;">Team Progress Dashboard:</p>
+
+    <div class="dashboard-container" style="padding: 20px; background-color: #f5f5f5; border-radius: 8px; margin: 20px 0;">
+        <div class="dashboard-header" style="margin-bottom: 20px;">
+            <h3>Overall Project Statistics</h3>
+        </div>
+
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>Total Projects</h4>
+                <p id="totalProjects" style="font-size: 24px; font-weight: bold; margin: 10px 0;">Loading...</p>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>Active Projects</h4>
+                <p id="activeProjects" style="font-size: 24px; font-weight: bold; margin: 10px 0;">Loading...</p>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>Completed Projects</h4>
+                <p id="completedProjects" style="font-size: 24px; font-weight: bold; margin: 10px 0;">Loading...</p>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>Total Team Members</h4>
+                <p id="totalTeamMembers" style="font-size: 24px; font-weight: bold; margin: 10px 0;">Loading...</p>
+            </div>
+        </div>
+
+        <div class="progress-section" style="margin-bottom: 30px;">
+            <h3>Project Progress Overview</h3>
+            <div id="projectProgressList" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="team-performance" style="margin-bottom: 30px;">
+            <h3>Team Member Performance</h3>
+            <div id="teamPerformanceList" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="budget-overview" style="margin-bottom: 30px;">
+            <h3>Budget Overview</h3>
+            <div id="budgetOverview" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Fetch all projects
+                const projectsRes = await fetch('/projects');
+                const projects = await projectsRes.json();
+
+                // Fetch all users
+                const usersRes = await fetch('/users');
+                const users = await usersRes.json();
+
+                // Calculate statistics
+                const totalProjects = projects.length;
+                const activeProjects = projects.filter(p => p.status === 'InProgress').length;
+                const completedProjects = projects.filter(p => p.status === 'Complete').length;
+                const totalTeamMembers = users.length;
+
+                // Update statistics
+                document.getElementById('totalProjects').textContent = totalProjects;
+                document.getElementById('activeProjects').textContent = activeProjects;
+                document.getElementById('completedProjects').textContent = completedProjects;
+                document.getElementById('totalTeamMembers').textContent = totalTeamMembers;
+
+                // Project Progress List
+                const projectProgressList = document.getElementById('projectProgressList');
+                projectProgressList.innerHTML = '';
+
+                projects.forEach(project => {
+                    const progressCard = document.createElement('div');
+                    progressCard.style.cssText = 'background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+                    
+                    // Calculate project progress based on tasks
+                    const totalTasks = project.tasks ? project.tasks.length : 0;
+                    const completedTasks = project.tasks ? project.tasks.filter(t => t.status === 'Complete').length : 0;
+                    const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+                    progressCard.innerHTML = `
+                        <h4 style="margin: 0 0 10px 0;">${project.title}</h4>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>Status: ${project.status}</span>
+                            <span>Budget: $${project.budget}</span>
+                        </div>
+                        <div style="background: #eee; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: #4CAF50; width: ${progressPercentage}%; height: 100%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                            <small>Progress: ${progressPercentage.toFixed(1)}%</small>
+                            <small>Tasks: ${completedTasks}/${totalTasks}</small>
+                        </div>
+                    `;
+                    projectProgressList.appendChild(progressCard);
+                });
+
+                // Team Performance List
+                const teamPerformanceList = document.getElementById('teamPerformanceList');
+                teamPerformanceList.innerHTML = '';
+
+                users.forEach(user => {
+                    if (user.role !== 'Owner') {
+                        const userCard = document.createElement('div');
+                        userCard.style.cssText = 'background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+                        
+                        // Count user's tasks across all projects
+                        let totalAssignedTasks = 0;
+                        let completedTasks = 0;
+                        projects.forEach(project => {
+                            if (project.tasks) {
+                                const userTasks = project.tasks.filter(t => t.assignedTo === user._id);
+                                totalAssignedTasks += userTasks.length;
+                                completedTasks += userTasks.filter(t => t.status === 'Complete').length;
+                            }
+                        });
+
+                        const completionRate = totalAssignedTasks > 0 ? (completedTasks / totalAssignedTasks) * 100 : 0;
+
+                        userCard.innerHTML = `
+                            <h4 style="margin: 0 0 10px 0;">${user.firstname} ${user.lastname}</h4>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Role: ${user.role}</span>
+                                <span>Tasks Completed: ${completedTasks}/${totalAssignedTasks}</span>
+                            </div>
+                            <div style="background: #eee; height: 20px; border-radius: 10px; overflow: hidden;">
+                                <div style="background: #2196F3; width: ${completionRate}%; height: 100%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <div style="text-align: right; margin-top: 5px;">
+                                <small>Completion Rate: ${completionRate.toFixed(1)}%</small>
+                            </div>
+                        `;
+                        teamPerformanceList.appendChild(userCard);
+                    }
+                });
+
+                // Budget Overview
+                const budgetOverview = document.getElementById('budgetOverview');
+                budgetOverview.innerHTML = '';
+
+                const totalBudget = projects.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0);
+                const totalSpent = projects.reduce((sum, p) => {
+                    if (p.tasks) {
+                        return sum + p.tasks.reduce((taskSum, t) => taskSum + (parseFloat(t.cost) || 0), 0);
+                    }
+                    return sum;
+                }, 0);
+
+                const budgetCard = document.createElement('div');
+                budgetCard.style.cssText = 'background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+                
+                const budgetUtilization = (totalSpent / totalBudget) * 100;
+
+                budgetCard.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                        <div>
+                            <h4 style="margin: 0 0 10px 0;">Total Budget</h4>
+                            <p style="font-size: 24px; font-weight: bold; margin: 0;">$${totalBudget.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 10px 0;">Total Spent</h4>
+                            <p style="font-size: 24px; font-weight: bold; margin: 0;">$${totalSpent.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin: 0 0 10px 0;">Budget Utilization</h4>
+                        <div style="background: #eee; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: ${budgetUtilization > 90 ? '#f44336' : budgetUtilization > 70 ? '#ff9800' : '#4CAF50'}; 
+                                 width: ${Math.min(budgetUtilization, 100)}%; height: 100%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div style="text-align: right; margin-top: 5px;">
+                            <small>${budgetUtilization.toFixed(1)}% of budget utilized</small>
+                        </div>
+                    </div>
+                `;
+                budgetOverview.appendChild(budgetCard);
+
+            } catch (err) {
+                console.error('Error loading dashboard data:', err);
+                // Show error state in the dashboard
+                document.querySelector('.dashboard-container').innerHTML = `
+                    <div style="color: #f44336; text-align: center; padding: 20px;">
+                        <h3>Error Loading Dashboard</h3>
+                        <p>Please try refreshing the page</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">List of Employees In the Company:</p>
+
+    <ul id="userList" style="padding-left: 20px; padding-right: 20px;"></ul>
+
+    {{else}}
+    {{#ifCond user.role "Engineer"}}
+
+    <p style="text-align: left; padding-top: 20px;">Reports Management:</p>
+
+    <p style="text-align: left; padding-top: 20px;">Add Report:</p>
+    <form id="addReportForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="ARpid" name="ARpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Title">Title</label>
+            <input type="text" id="ARtitle" name="ARtitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Description">Description</label>
+            <textarea id="ARdesc" name="ARdesc" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="Tags">Tags (comma-separated)</label>
+            <input type="text" id="ARtags" name="ARtags" placeholder="tag1, tag2, tag3">
+            <small>Enter tags separated by commas</small>
+        </div>
+
+        <div class="form-group">
+            <label for="File URL">File URL</label>
+            <input type="url" id="ARfileURL" name="ARfileURL" placeholder="https://example.com/file.pdf">
+            <small>Enter a valid URL to the report file</small>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Report</button>
+    </form>
+
+    <script>
+        document.getElementById('addReportForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('ARpid').value.trim();
+                const tagsInput = document.getElementById('ARtags').value.trim();
+                const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
+
+                const formData = {
+                    title: document.getElementById('ARtitle').value.trim(),
+                    description: document.getElementById('ARdesc').value.trim(),
+                    project: projectId,
+                    tags: tags,
+                    fileURL: document.getElementById('ARfileURL').value.trim() || undefined,
+                    issues: [] // Initialize empty issues array
+                };
+
+                const response = await fetch(`/projects/${projectId}/reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Report added successfully!');
+                    // Clear form
+                    document.getElementById('addReportForm').reset();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to add report'}`);
+                }
+            } catch (error) {
+                alert('Error occurred while adding report');
+            }
+        });
+    </script>
+
+    <p style="text-align: left; padding-top: 20px;">Add Issue to Report:</p>
+    <form id="addIssueForm">
+        <div class="form-group">
+            <label for="Project Id">Project Id</label>
+            <input type="text" id="AIpid" name="AIpid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Report Id">Report Id</label>
+            <input type="text" id="AIrid" name="AIrid" required>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Title">Issue Title</label>
+            <input type="text" id="AItitle" name="AItitle" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Description">Issue Description</label>
+            <textarea id="AIdesc" name="AIdesc" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="Issue Severity">Severity</label>
+            <select id="AIseverity" name="AIseverity" required>
+                <option value="" disabled selected>Select Severity</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn" style="margin-left: 50px; margin-right: 50px; margin-top: 20px; width: 70%">Add Issue</button>
+    </form>
+
+    <script>
+        document.getElementById('addIssueForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                const projectId = document.getElementById('AIpid').value.trim();
+                const reportId = document.getElementById('AIrid').value.trim();
+                const formData = {
+                    title: document.getElementById('AItitle').value.trim(),
+                    description: document.getElementById('AIdesc').value.trim(),
+                    severity: document.getElementById('AIseverity').value,
+                    date: new Date().toISOString()
+                };
+
+                const response = await fetch(`/projects/${projectId}/reports/${reportId}/issues`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Issue added successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message || 'Failed to add issue'}`);
+                }
+            } catch (error) {
+                alert('Error occurred while adding issue');
+            }
+        });
+    </script>
 
     {{else}}
     <p>Role not recognized, how did you even get this far?</p>
