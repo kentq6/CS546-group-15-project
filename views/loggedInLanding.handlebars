@@ -244,8 +244,18 @@
                   projects.forEach(project => {
                     const li = document.createElement('li');
 
-                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - Project Id: ${project._id} - Employees At Project: ${project.members}`;
+                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - Project Id: ${project._id} - Employees At Project:`;
                     projectList.appendChild(li);
+
+
+                    let lis = "";
+                    project.members.forEach(member => {
+                      lis = lis + member+" ";
+                    });
+
+                    const mlist = document.createElement('li');
+                    mlist.textContent = lis;
+                    projectList.appendChild(mlist);
                 });
 
                 } catch (err) {
@@ -529,8 +539,19 @@
                   // Loop through users and add to the list
                   projects.forEach(project => {
                     const li = document.createElement('li');
-                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - ${project._id}  - Employees At Project: ${project.members}`;
+
+                    li.textContent = `${project.title}: ${project.description} - ${project.status} - ${project.budget} - Project Id: ${project._id} - Employees At Project:`;
                     projectList.appendChild(li);
+
+
+                    let lis = "";
+                    project.members.forEach(member => {
+                      lis = lis + member+" ";
+                    });
+
+                    const mlist = document.createElement('li');
+                    mlist.textContent = lis;
+                    projectList.appendChild(mlist);
                 });
 
                 } catch (err) {
