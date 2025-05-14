@@ -1,0 +1,381 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>Tasks</h2>
+    {{#ifCond user.role "Field Manager"}}
+    <button id="new-task-btn" class="btn">Create Task</button>
+    {{/ifCond}}
+  </div>
+  
+  <div class="project-selector">
+    <label for="project-selector">Select Project:</label>
+    <select id="project-selector">
+      <option value="" disabled selected>Select a project</option>
+    </select>
+  </div>
+  
+  <div class="search-container" style="margin-top:15px;">
+    <input type="text" id="task-search" class="search-input" placeholder="Search tasks by title...">
+  </div>
+  
+  <div id="tasks-container">
+    <p>Please select a project to view tasks</p>
+  </div>
+  
+  {{#ifCond user.role "Field Manager"}}
+  <div id="task-form-container" style="display:none; margin-top:20px;">
+    <h3>Create New Task</h3>
+    <form id="taskForm">
+      <div class="form-group">
+        <label for="task-title">Title</label>
+        <input type="text" id="task-title" name="title" required>
+      </div>
+      <div class="form-group">
+        <label for="task-description">Description</label>
+        <textarea id="task-description" name="description" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="task-cost">Cost</label>
+        <input type="number" id="task-cost" name="cost" required min="0">
+      </div>
+      <div class="form-group">
+        <label for="task-assignee">Assign To</label>
+        <select id="task-assignee" name="assignedTo" required>
+          <option value="" disabled selected>Select project member</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn">Create Task</button>
+        <button type="button" id="cancel-task-btn" class="btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+  {{/ifCond}}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const projectSelector = document.getElementById('project-selector');
+    const tasksContainer = document.getElementById('tasks-container');
+    const searchInput = document.getElementById('task-search');
+    
+    let allTasks = [];
+    let currentProject = null;
+    
+    // Load projects for the dropdown
+    function loadProjects() {
+      fetch('/projects')
+        .then(res => res.json())
+        .then(projects => {
+          projectSelector.innerHTML = '<option value="" disabled selected>Select a project</option>';
+          
+          projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project._id;
+            option.textContent = project.title;
+            projectSelector.appendChild(option);
+          });
+        })
+        .catch(err => {
+          alert(`Error loading projects: ${err.message}`);
+        });
+    }
+    
+    // Load tasks for a project
+    function loadTasks(projectId) {
+      tasksContainer.innerHTML = '<p>Loading tasks...</p>';
+      
+      fetch(`/projects/${projectId}/tasks`)
+        .then(res => res.json())
+        .then(tasks => {
+          allTasks = tasks;
+          renderTasks(tasks);
+          currentProject = projectId;
+          
+          {{#ifCond user.role "Field Manager"}}
+          // Load project members for the task assignment dropdown
+          loadProjectMembers(projectId);
+          {{/ifCond}}
+        })
+        .catch(err => {
+          tasksContainer.innerHTML = `<p>Error loading tasks: ${err.message}</p>`;
+        });
+    }
+    
+    // Render tasks list
+    function renderTasks(tasks) {
+      if (tasks.length === 0) {
+        tasksContainer.innerHTML = '<p>No tasks found for this project</p>';
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      
+      // Table header
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Title</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Description</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Status</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Assigned To</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Cost</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Actions</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+      
+      // Table body
+      const tbody = document.createElement('tbody');
+      
+      // Fetch user details for assigned users
+      fetch('/users')
+        .then(res => res.json())
+        .then(users => {
+          tasks.forEach(task => {
+            const assignedUser = users.find(user => user._id === task.assignedTo);
+            const assigneeName = assignedUser ? 
+              `${assignedUser.firstname} ${assignedUser.lastname}` : 
+              'Unknown';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:8px;border-bottom:1px solid #eee;">${task.title}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">${task.description.substring(0, 30)}${task.description.length > 30 ? '...' : ''}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">${task.status}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">${assigneeName}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">$${task.cost}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">
+                <button class="btn-sm update-task-status" data-id="${task._id}" data-current="${task.status}">Update Status</button>
+                {{#ifCond user.role "Field Manager"}}
+                <button class="btn-sm delete-task" data-id="${task._id}">Delete</button>
+                {{/ifCond}}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          
+          table.appendChild(tbody);
+          tasksContainer.innerHTML = '';
+          tasksContainer.appendChild(table);
+          
+          // Add event listeners for action buttons
+          document.querySelectorAll('.update-task-status').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const taskId = this.getAttribute('data-id');
+              const currentStatus = this.getAttribute('data-current');
+              showUpdateStatusForm(taskId, currentStatus);
+            });
+          });
+          
+          {{#ifCond user.role "Field Manager"}}
+          document.querySelectorAll('.delete-task').forEach(btn => {
+            btn.addEventListener('click', function() {
+              if (confirm('Are you sure you want to delete this task?')) {
+                const taskId = this.getAttribute('data-id');
+                deleteTask(taskId);
+              }
+            });
+          });
+          {{/ifCond}}
+        });
+    }
+    
+    // Show task status update form
+    function showUpdateStatusForm(taskId, currentStatus) {
+      // Create a simple popup form
+      const statusForm = document.createElement('div');
+      statusForm.style.position = 'fixed';
+      statusForm.style.top = '50%';
+      statusForm.style.left = '50%';
+      statusForm.style.transform = 'translate(-50%, -50%)';
+      statusForm.style.padding = '20px';
+      statusForm.style.backgroundColor = 'white';
+      statusForm.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+      statusForm.style.zIndex = '1000';
+      statusForm.style.borderRadius = '5px';
+      
+      statusForm.innerHTML = `
+        <h3>Update Task Status</h3>
+        <div class="form-group">
+          <label for="status-select">Status</label>
+          <select id="status-select">
+            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="InProgress" ${currentStatus === 'InProgress' ? 'selected' : ''}>In Progress</option>
+            <option value="Complete" ${currentStatus === 'Complete' ? 'selected' : ''}>Complete</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <button id="save-status" class="btn">Save</button>
+          <button id="cancel-status" class="btn" style="margin-left:10px;">Cancel</button>
+        </div>
+      `;
+      
+      document.body.appendChild(statusForm);
+      
+      // Add event listeners
+      document.getElementById('save-status').addEventListener('click', function() {
+        const newStatus = document.getElementById('status-select').value;
+        updateTaskStatus(taskId, newStatus);
+        document.body.removeChild(statusForm);
+      });
+      
+      document.getElementById('cancel-status').addEventListener('click', function() {
+        document.body.removeChild(statusForm);
+      });
+    }
+    
+    // Update task status
+    function updateTaskStatus(taskId, newStatus) {
+      const data = { status: newStatus };
+      
+      fetch(`/projects/${currentProject}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(res => {
+          if (res.ok) {
+            loadTasks(currentProject);
+            alert('Task status updated successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to update task status');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    {{#ifCond user.role "Field Manager"}}
+    // Delete task
+    function deleteTask(taskId) {
+      fetch(`/projects/${currentProject}/tasks/${taskId}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (res.ok) {
+            loadTasks(currentProject);
+            alert('Task deleted successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to delete task');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    // Load project members for task assignment
+    function loadProjectMembers(projectId) {
+      Promise.all([
+        fetch(`/projects/${projectId}`).then(res => res.json()),
+        fetch('/users').then(res => res.json())
+      ])
+        .then(([project, allUsers]) => {
+          const memberIds = project.members;
+          const members = allUsers.filter(user => memberIds.includes(user._id));
+          
+          const assigneeSelect = document.getElementById('task-assignee');
+          assigneeSelect.innerHTML = '<option value="" disabled selected>Select project member</option>';
+          
+          members.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member._id;
+            option.textContent = `${member.firstname} ${member.lastname} (${member.role})`;
+            assigneeSelect.appendChild(option);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading project members:', err);
+        });
+    }
+    
+    // Create new task
+    const newTaskBtn = document.getElementById('new-task-btn');
+    const taskFormContainer = document.getElementById('task-form-container');
+    const cancelTaskBtn = document.getElementById('cancel-task-btn');
+    const taskForm = document.getElementById('taskForm');
+    
+    newTaskBtn.addEventListener('click', () => {
+      if (!currentProject) {
+        alert('Please select a project first');
+        return;
+      }
+      taskFormContainer.style.display = 'block';
+    });
+    
+    cancelTaskBtn.addEventListener('click', () => {
+      taskFormContainer.style.display = 'none';
+      taskForm.reset();
+    });
+    
+    taskForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        title: document.getElementById('task-title').value,
+        description: document.getElementById('task-description').value,
+        cost: document.getElementById('task-cost').value,
+        assignedTo: document.getElementById('task-assignee').value
+      };
+      
+      fetch(`/projects/${currentProject}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(res => {
+          if (res.ok) {
+            loadTasks(currentProject);
+            taskFormContainer.style.display = 'none';
+            taskForm.reset();
+            alert('Task created successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to create task');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    });
+    {{/ifCond}}
+    
+    // Project selection change
+    projectSelector.addEventListener('change', function() {
+      const projectId = this.value;
+      if (projectId) {
+        loadTasks(projectId);
+      }
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      if (!currentProject || searchTerm.length === 0) {
+        renderTasks(allTasks);
+        return;
+      }
+      
+      const filteredTasks = allTasks.filter(task => 
+        task.title.toLowerCase().includes(searchTerm)
+      );
+      
+      renderTasks(filteredTasks);
+    });
+    
+    // Initial load
+    loadProjects();
+  });
+</script>

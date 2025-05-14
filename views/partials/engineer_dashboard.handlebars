@@ -1,0 +1,339 @@
+<div class="dashboard-summary">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Engineer Dashboard</h2>
+    </div>
+    
+    <div class="dashboard-stats" style="display:flex; justify-content:space-between; margin-bottom:20px;">
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>My Projects</h4>
+        <p id="project-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>Assigned Tasks</h4>
+        <p id="task-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px;">
+        <h4>Pending Tasks</h4>
+        <p id="pending-task-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+    </div>
+    
+    <div class="row" style="display:flex; margin-bottom:20px;">
+      <div class="col" style="flex:1; margin-right:10px;">
+        <h3>My Tasks</h3>
+        <div id="my-tasks">
+          <p>Loading...</p>
+        </div>
+      </div>
+      <div class="col" style="flex:1;">
+        <h3>My Projects</h3>
+        <div id="my-projects">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="recent-blueprints" style="margin-top:20px;">
+      <h3>Recent Blueprints</h3>
+      <div id="recent-blueprints">
+        <p>Loading...</p>
+      </div>
+    </div>
+    
+    <div class="quick-actions" style="margin-top:20px;">
+      <h3>Quick Actions</h3>
+      <div style="display:flex; gap:10px;">
+        <button id="quick-view-tasks" class="btn">View All Tasks</button>
+        <button id="quick-add-blueprint" class="btn">Add Blueprint</button>
+        <button id="quick-create-report" class="btn">Create Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const projectCount = document.getElementById('project-count');
+    const taskCount = document.getElementById('task-count');
+    const pendingTaskCount = document.getElementById('pending-task-count');
+    const myTasks = document.getElementById('my-tasks');
+    const myProjects = document.getElementById('my-projects');
+    const recentBlueprints = document.getElementById('recent-blueprints');
+    
+    // Quick action buttons
+    const quickViewTasks = document.getElementById('quick-view-tasks');
+    const quickAddBlueprint = document.getElementById('quick-add-blueprint');
+    const quickCreateReport = document.getElementById('quick-create-report');
+    
+    // First get current user info
+    fetch('/company')
+      .then(res => res.json())
+      .then(companyData => {
+        // Now load projects
+        fetch('/projects')
+          .then(res => res.json())
+          .then(projects => {
+            // Update project count
+            projectCount.textContent = projects.length;
+            
+            // Display projects
+            if (projects.length === 0) {
+              myProjects.innerHTML = '<p>No projects found</p>';
+            } else {
+              const projectsList = document.createElement('ul');
+              projectsList.style.listStyleType = 'none';
+              projectsList.style.padding = '0';
+              
+              projects.forEach(project => {
+                const li = document.createElement('li');
+                li.style.padding = '8px 0';
+                li.style.borderBottom = '1px solid #eee';
+                
+                // Status indicator with color
+                const statusColor = project.status === 'Pending' ? '#ffc107' : 
+                                   project.status === 'InProgress' ? '#007bff' : 
+                                   '#28a745';
+                
+                li.innerHTML = `
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>${project.title}</span>
+                    <span style="color:${statusColor}; font-weight:bold;">${project.status}</span>
+                  </div>
+                `;
+                
+                li.addEventListener('click', () => {
+                  // Navigate to project details
+                  document.querySelector('.sidebar-nav a[data-section="projects"]').click();
+                  setTimeout(() => {
+                    document.querySelector(`.view-project[data-id="${project._id}"]`).click();
+                  }, 100);
+                });
+                
+                li.style.cursor = 'pointer';
+                projectsList.appendChild(li);
+              });
+              
+              myProjects.innerHTML = '';
+              myProjects.appendChild(projectsList);
+            }
+            
+            // Load tasks for each project
+            let allTasksPromises = [];
+            projects.forEach(project => {
+              allTasksPromises.push(
+                fetch(`/projects/${project._id}/tasks`).then(res => res.json())
+              );
+            });
+            
+            Promise.all(allTasksPromises)
+              .then(allProjectTasks => {
+                // Flatten and filter tasks assigned to current user
+                const allTasks = allProjectTasks.flat();
+                
+                // Get count of all tasks assigned to user
+                const myTasksArray = [];
+                let pendingTasks = 0;
+                
+                for (const task of allTasks) {
+                  myTasksArray.push(task);
+                  if (task.status === 'Pending') {
+                    pendingTasks++;
+                  }
+                }
+                
+                // Update counts
+                taskCount.textContent = myTasksArray.length;
+                pendingTaskCount.textContent = pendingTasks;
+                
+                // Display tasks
+                if (myTasksArray.length === 0) {
+                  myTasks.innerHTML = '<p>No tasks assigned</p>';
+                } else {
+                  const tasksList = document.createElement('ul');
+                  tasksList.style.listStyleType = 'none';
+                  tasksList.style.padding = '0';
+                  
+                  // Sort by status (pending first)
+                  myTasksArray.sort((a, b) => {
+                    const order = { 'Pending': 0, 'InProgress': 1, 'Complete': 2 };
+                    return order[a.status] - order[b.status];
+                  });
+                  
+                  myTasksArray.slice(0, 5).forEach(task => {
+                    const li = document.createElement('li');
+                    li.style.padding = '8px 0';
+                    li.style.borderBottom = '1px solid #eee';
+                    
+                    // Project info
+                    const projectInfo = projects.find(p => p._id === task.project);
+                    const projectName = projectInfo ? projectInfo.title : 'Unknown Project';
+                    
+                    // Status color
+                    const statusColor = task.status === 'Pending' ? '#ffc107' : 
+                                       task.status === 'InProgress' ? '#007bff' : 
+                                       '#28a745';
+                    
+                    li.innerHTML = `
+                      <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>${task.title}</span>
+                        <span style="color:${statusColor}; font-weight:bold;">${task.status}</span>
+                      </div>
+                      <div style="font-size:0.8em; color:#6c757d;">
+                        Project: ${projectName} | Cost: $${task.cost}
+                      </div>
+                    `;
+                    
+                    // Add update status functionality
+                    li.addEventListener('click', () => {
+                      // Create popup for status update
+                      const statusForm = document.createElement('div');
+                      statusForm.style.position = 'fixed';
+                      statusForm.style.top = '50%';
+                      statusForm.style.left = '50%';
+                      statusForm.style.transform = 'translate(-50%, -50%)';
+                      statusForm.style.padding = '20px';
+                      statusForm.style.backgroundColor = 'white';
+                      statusForm.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+                      statusForm.style.zIndex = '1000';
+                      statusForm.style.borderRadius = '5px';
+                      
+                      statusForm.innerHTML = `
+                        <h3>Update Task Status</h3>
+                        <div class="form-group">
+                          <label for="status-select">Status</label>
+                          <select id="status-select">
+                            <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="InProgress" ${task.status === 'InProgress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Complete" ${task.status === 'Complete' ? 'selected' : ''}>Complete</option>
+                          </select>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                          <button id="save-status" class="btn">Save</button>
+                          <button id="cancel-status" class="btn" style="margin-left:10px;">Cancel</button>
+                        </div>
+                      `;
+                      
+                      document.body.appendChild(statusForm);
+                      
+                      // Add event listeners
+                      document.getElementById('save-status').addEventListener('click', function() {
+                        const newStatus = document.getElementById('status-select').value;
+                        
+                        // Update task status
+                        fetch(`/projects/${task.project}/tasks/${task._id}`, {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({ status: newStatus })
+                        })
+                          .then(res => {
+                            if (res.ok) {
+                              alert('Task status updated successfully');
+                              // Refresh the dashboard
+                              window.location.reload();
+                            } else {
+                              return res.json().then(data => {
+                                throw new Error(data.message || 'Failed to update task status');
+                              });
+                            }
+                          })
+                          .catch(err => {
+                            alert(`Error: ${err.message}`);
+                          });
+                        
+                        document.body.removeChild(statusForm);
+                      });
+                      
+                      document.getElementById('cancel-status').addEventListener('click', function() {
+                        document.body.removeChild(statusForm);
+                      });
+                    });
+                    
+                    li.style.cursor = 'pointer';
+                    tasksList.appendChild(li);
+                  });
+                  
+                  myTasks.innerHTML = '';
+                  myTasks.appendChild(tasksList);
+                }
+              });
+            
+            // Load blueprints for each project
+            let allBlueprintsPromises = [];
+            projects.forEach(project => {
+              allBlueprintsPromises.push(
+                fetch(`/projects/${project._id}/blueprints`).then(res => res.json())
+              );
+            });
+            
+            Promise.all(allBlueprintsPromises)
+              .then(allProjectBlueprints => {
+                // Flatten all blueprints
+                const allBlueprints = allProjectBlueprints.flat();
+                
+                // Display blueprints
+                if (allBlueprints.length === 0) {
+                  recentBlueprints.innerHTML = '<p>No blueprints found</p>';
+                } else {
+                  const blueprintsList = document.createElement('ul');
+                  blueprintsList.style.listStyleType = 'none';
+                  blueprintsList.style.padding = '0';
+                  
+                  // Take most recent 5
+                  allBlueprints.slice(0, 5).forEach(blueprint => {
+                    const li = document.createElement('li');
+                    li.style.padding = '8px 0';
+                    li.style.borderBottom = '1px solid #eee';
+                    
+                    // Project info
+                    const projectInfo = projects.find(p => p._id === blueprint.project);
+                    const projectName = projectInfo ? projectInfo.title : 'Unknown Project';
+                    
+                    li.innerHTML = `
+                      <div>
+                        <span style="font-weight:bold;">${blueprint.title}</span>
+                      </div>
+                      <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:0.8em; color:#6c757d;">
+                          Project: ${projectName}
+                        </div>
+                        <div>
+                          ${blueprint.tags.map(tag => 
+                            `<span class="tag" style="display:inline-block; background:#f0f0f0; padding:2px 6px; margin:2px; border-radius:3px; font-size:0.8em;">${tag}</span>`
+                          ).join('')}
+                        </div>
+                      </div>
+                    `;
+                    
+                    blueprintsList.appendChild(li);
+                  });
+                  
+                  recentBlueprints.innerHTML = '';
+                  recentBlueprints.appendChild(blueprintsList);
+                }
+              });
+          });
+      });
+    
+    // Quick action event handlers
+    quickViewTasks.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="tasks"]').click();
+    });
+    
+    quickAddBlueprint.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="blueprints"]').click();
+      setTimeout(() => {
+        document.getElementById('new-blueprint-btn').click();
+      }, 100);
+    });
+    
+    quickCreateReport.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="reports"]').click();
+      setTimeout(() => {
+        document.getElementById('new-report-btn').click();
+      }, 100);
+    });
+  });
+</script>

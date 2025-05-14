@@ -29,7 +29,8 @@ async function run() {
                 }
                 return options.inverse(this); // Render the inverse block if they don't match
             }
-        }
+        },
+        //partialsDir: '/views/partials'
     });
 
     app.engine('handlebars', hbs.engine);

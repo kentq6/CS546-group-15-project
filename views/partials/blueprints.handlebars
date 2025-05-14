@@ -1,0 +1,331 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>Blueprints</h2>
+    <button id="new-blueprint-btn" class="btn">Add Blueprint</button>
+  </div>
+  
+  <div class="project-selector">
+    <label for="blueprint-project-selector">Select Project:</label>
+    <select id="blueprint-project-selector">
+      <option value="" disabled selected>Select a project</option>
+    </select>
+  </div>
+  
+  <div class="search-container" style="margin-top:15px;">
+    <input type="text" id="blueprint-search" class="search-input" placeholder="Search blueprints by title or tag...">
+  </div>
+  
+  <div id="blueprints-container">
+    <p>Please select a project to view blueprints</p>
+  </div>
+  
+  <div id="blueprint-form-container" style="display:none; margin-top:20px;">
+    <h3>Add New Blueprint</h3>
+    <form id="blueprintForm">
+      <div class="form-group">
+        <label for="blueprint-title">Title</label>
+        <input type="text" id="blueprint-title" name="title" required>
+      </div>
+      <div class="form-group">
+        <label for="blueprint-tags">Tags (comma separated)</label>
+        <input type="text" id="blueprint-tags" name="tags" required placeholder="e.g. electrical, floor-plan, plumbing">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn">Add Blueprint</button>
+        <button type="button" id="cancel-blueprint-btn" class="btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const projectSelector = document.getElementById('blueprint-project-selector');
+    const blueprintsContainer = document.getElementById('blueprints-container');
+    const searchInput = document.getElementById('blueprint-search');
+    const newBlueprintBtn = document.getElementById('new-blueprint-btn');
+    const blueprintFormContainer = document.getElementById('blueprint-form-container');
+    const cancelBlueprintBtn = document.getElementById('cancel-blueprint-btn');
+    const blueprintForm = document.getElementById('blueprintForm');
+    
+    let allBlueprints = [];
+    let currentProject = null;
+    
+    // Load projects for the dropdown
+    function loadProjects() {
+      fetch('/projects')
+        .then(res => res.json())
+        .then(projects => {
+          projectSelector.innerHTML = '<option value="" disabled selected>Select a project</option>';
+          
+          projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project._id;
+            option.textContent = project.title;
+            projectSelector.appendChild(option);
+          });
+        })
+        .catch(err => {
+          alert(`Error loading projects: ${err.message}`);
+        });
+    }
+    
+    // Load blueprints for a project
+    function loadBlueprints(projectId) {
+      blueprintsContainer.innerHTML = '<p>Loading blueprints...</p>';
+      
+      fetch(`/projects/${projectId}/blueprints`)
+        .then(res => res.json())
+        .then(blueprints => {
+          allBlueprints = blueprints;
+          renderBlueprints(blueprints);
+          currentProject = projectId;
+        })
+        .catch(err => {
+          blueprintsContainer.innerHTML = `<p>Error loading blueprints: ${err.message}</p>`;
+        });
+    }
+    
+    // Render blueprints list
+    function renderBlueprints(blueprints) {
+      if (blueprints.length === 0) {
+        blueprintsContainer.innerHTML = '<p>No blueprints found for this project</p>';
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      
+      // Table header
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Title</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Tags</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Actions</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+      
+      // Table body
+      const tbody = document.createElement('tbody');
+      
+      // Fetch user details for uploaded by info
+      fetch('/users')
+        .then(res => res.json())
+        .then(users => {
+          blueprints.forEach(blueprint => {
+            const uploader = users.find(user => user._id === blueprint.uploadedBy);
+            const uploaderName = uploader ? 
+              `${uploader.firstname} ${uploader.lastname}` : 
+              'Unknown';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:8px;border-bottom:1px solid #eee;">${blueprint.title}</td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">
+                ${blueprint.tags.map(tag => `<span class="tag" style="display:inline-block; background:#f0f0f0; padding:2px 6px; margin:2px; border-radius:3px;">${tag}</span>`).join('')}
+              </td>
+              <td style="padding:8px;border-bottom:1px solid #eee;">
+                <button class="btn-sm update-blueprint-tags" data-id="${blueprint._id}" data-tags="${blueprint.tags.join(',')}">Update Tags</button>
+                {{#ifCond user.role "Field Manager"}}
+                <button class="btn-sm delete-blueprint" data-id="${blueprint._id}">Delete</button>
+                {{/ifCond}}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          
+          table.appendChild(tbody);
+          blueprintsContainer.innerHTML = '';
+          blueprintsContainer.appendChild(table);
+          
+          // Add event listeners for action buttons
+          document.querySelectorAll('.update-blueprint-tags').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const blueprintId = this.getAttribute('data-id');
+              const currentTags = this.getAttribute('data-tags');
+              showUpdateTagsForm(blueprintId, currentTags);
+            });
+          });
+          
+          {{#ifCond user.role "Field Manager"}}
+          document.querySelectorAll('.delete-blueprint').forEach(btn => {
+            btn.addEventListener('click', function() {
+              if (confirm('Are you sure you want to delete this blueprint?')) {
+                const blueprintId = this.getAttribute('data-id');
+                deleteBlueprint(blueprintId);
+              }
+            });
+          });
+          {{/ifCond}}
+        });
+    }
+    
+    // Show update tags form
+    function showUpdateTagsForm(blueprintId, currentTags) {
+      // Create a simple popup form
+      const tagsForm = document.createElement('div');
+      tagsForm.style.position = 'fixed';
+      tagsForm.style.top = '50%';
+      tagsForm.style.left = '50%';
+      tagsForm.style.transform = 'translate(-50%, -50%)';
+      tagsForm.style.padding = '20px';
+      tagsForm.style.backgroundColor = 'white';
+      tagsForm.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+      tagsForm.style.zIndex = '1000';
+      tagsForm.style.borderRadius = '5px';
+      
+      tagsForm.innerHTML = `
+        <h3>Update Blueprint Tags</h3>
+        <div class="form-group">
+          <label for="tags-input">Tags (comma separated)</label>
+          <input type="text" id="tags-input" value="${currentTags}" placeholder="e.g. electrical, floor-plan, plumbing">
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <button id="save-tags" class="btn">Save</button>
+          <button id="cancel-tags" class="btn" style="margin-left:10px;">Cancel</button>
+        </div>
+      `;
+      
+      document.body.appendChild(tagsForm);
+      
+      // Add event listeners
+      document.getElementById('save-tags').addEventListener('click', function() {
+        const newTags = document.getElementById('tags-input').value;
+        updateBlueprintTags(blueprintId, newTags);
+        document.body.removeChild(tagsForm);
+      });
+      
+      document.getElementById('cancel-tags').addEventListener('click', function() {
+        document.body.removeChild(tagsForm);
+      });
+    }
+    
+    // Update blueprint tags
+    function updateBlueprintTags(blueprintId, tagsString) {
+      const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
+      
+      fetch(`/projects/${currentProject}/blueprints/${blueprintId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ tags })
+      })
+        .then(res => {
+          if (res.ok) {
+            loadBlueprints(currentProject);
+            alert('Blueprint tags updated successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to update blueprint tags');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    {{#ifCond user.role "Field Manager"}}
+    // Delete blueprint
+    function deleteBlueprint(blueprintId) {
+      fetch(`/projects/${currentProject}/blueprints/${blueprintId}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (res.ok) {
+            loadBlueprints(currentProject);
+            alert('Blueprint deleted successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to delete blueprint');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    {{/ifCond}}
+    
+    // Handle new blueprint button
+    newBlueprintBtn.addEventListener('click', () => {
+      if (!currentProject) {
+        alert('Please select a project first');
+        return;
+      }
+      blueprintFormContainer.style.display = 'block';
+    });
+    
+    cancelBlueprintBtn.addEventListener('click', () => {
+      blueprintFormContainer.style.display = 'none';
+      blueprintForm.reset();
+    });
+    
+    // Handle blueprint form submission
+    blueprintForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const tagsInput = document.getElementById('blueprint-tags').value;
+      const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+      
+      const formData = {
+        title: document.getElementById('blueprint-title').value,
+        tags: tags
+      };
+      
+      fetch(`/projects/${currentProject}/blueprints`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(res => {
+          if (res.ok) {
+            loadBlueprints(currentProject);
+            blueprintFormContainer.style.display = 'none';
+            blueprintForm.reset();
+            alert('Blueprint added successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to add blueprint');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    });
+    
+    // Project selection change
+    projectSelector.addEventListener('change', function() {
+      const projectId = this.value;
+      if (projectId) {
+        loadBlueprints(projectId);
+      }
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      if (!currentProject || searchTerm.length === 0) {
+        renderBlueprints(allBlueprints);
+        return;
+      }
+      
+      const filteredBlueprints = allBlueprints.filter(blueprint => 
+        blueprint.title.toLowerCase().includes(searchTerm) ||
+        blueprint.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+      );
+      
+      renderBlueprints(filteredBlueprints);
+    });
+    
+    // Initial load
+    loadProjects();
+  });
+</script>

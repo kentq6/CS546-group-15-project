@@ -671,3 +671,79 @@ body.landing-page {
     align-self: center;
   }
 }
+
+.dashboard-container {
+  margin: 20px;
+}
+
+.panel {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.panel-header {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+th, td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  font-weight: 600;
+  background-color: #f8f9fa;
+}
+
+/* Add spacing for the sidebar */
+.sidebar {
+  padding: 15px 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 5px;
+}
+
+/* Make search boxes more prominent */
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+/* Add some breathing room to content areas */
+.content-area {
+  padding: 20px;
+}
+
+/* Improve button appearance */
+.btn {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 4px;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  margin-right: 4px;
+  border-radius: 3px;
+}

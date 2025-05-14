@@ -1,0 +1,469 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>Projects</h2>
+    {{#ifCond user.role "Field Manager"}}
+    <button id="new-project-btn" class="btn">Create Project</button>
+    {{/ifCond}}
+  </div>
+  
+  <div class="search-container">
+    <input type="text" id="project-search" class="search-input" placeholder="Search projects by title...">
+  </div>
+  
+  <div id="project-list">
+    <p>Loading projects...</p>
+  </div>
+  
+  {{#ifCond user.role "Field Manager"}}
+  <div id="project-form-container" style="display:none;">
+    <h3>Create New Project</h3>
+    <form id="projectForm">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="budget">Budget</label>
+        <input type="number" id="budget" name="budget" required min="0">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn">Create Project</button>
+        <button type="button" id="cancel-project-btn" class="btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+  {{/ifCond}}
+  
+  <div id="project-details" style="display:none;">
+    <div class="panel-header">
+      <h3>Project Details</h3>
+      <button id="back-to-projects" class="btn-sm">Back to Projects</button>
+    </div>
+    <div id="project-info"></div>
+    
+    {{#ifCond user.role "Field Manager"}}
+    <div class="panel" style="margin-top: 20px;">
+      <h4>Manage Project Members</h4>
+      <div id="project-members"></div>
+      <div id="add-member-form">
+        <div class="form-group">
+          <label for="employee-id">Add Employee to Project</label>
+          <select id="employee-id" name="employee-id" required>
+            <option value="" disabled selected>Select an employee</option>
+          </select>
+        </div>
+        <button id="add-member-btn" class="btn-sm">Add to Project</button>
+      </div>
+    </div>
+    {{/ifCond}}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const projectList = document.getElementById('project-list');
+    const searchInput = document.getElementById('project-search');
+    const projectDetails = document.getElementById('project-details');
+    const projectInfo = document.getElementById('project-info');
+    const backToProjectsBtn = document.getElementById('back-to-projects');
+    
+    let allProjects = [];
+    let currentProject = null;
+    
+    // Fetch projects
+    function loadProjects() {
+      fetch('/projects')
+        .then(res => res.json())
+        .then(projects => {
+          allProjects = projects;
+          renderProjects(projects);
+        })
+        .catch(err => {
+          projectList.innerHTML = `<p>Error loading projects: ${err.message}</p>`;
+        });
+    }
+    
+    // Render project list
+    function renderProjects(projects) {
+      if (projects.length === 0) {
+        projectList.innerHTML = '<p>No projects found</p>';
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      
+      // Table header
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Title</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Status</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Budget</th>
+          <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Actions</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+      
+      // Table body
+      const tbody = document.createElement('tbody');
+      projects.forEach(project => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding:8px;border-bottom:1px solid #eee;">${project.title}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">${project.status}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">$${project.budget}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;">
+            <button class="btn-sm view-project" data-id="${project._id}">View</button>
+            {{#ifCond user.role "Field Manager"}}
+            <button class="btn-sm delete-project" data-id="${project._id}">Delete</button>
+            {{/ifCond}}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      table.appendChild(tbody);
+      projectList.innerHTML = '';
+      projectList.appendChild(table);
+      
+      // Add event listeners for action buttons
+      document.querySelectorAll('.view-project').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const projectId = this.getAttribute('data-id');
+          viewProject(projectId);
+        });
+      });
+      
+      {{#ifCond user.role "Field Manager"}}
+      document.querySelectorAll('.delete-project').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to delete this project?')) {
+            const projectId = this.getAttribute('data-id');
+            deleteProject(projectId);
+          }
+        });
+      });
+      {{/ifCond}}
+    }
+    
+    // View project details
+    function viewProject(projectId) {
+      fetch(`/projects/${projectId}`)
+        .then(res => res.json())
+        .then(project => {
+          currentProject = project;
+          projectInfo.innerHTML = `
+            <div class="project-header">
+              <h3>${project.title}</h3>
+              <span class="project-status">${project.status}</span>
+            </div>
+            <div class="project-body">
+              <p><strong>Description:</strong> ${project.description}</p>
+              <p><strong>Budget:</strong> $${project.budget}</p>
+              <p><strong>Members:</strong> ${project.members.length}</p>
+              <p><strong>Project ID:</strong> ${project._id}</p>
+            </div>
+            {{#ifCond user.role "Field Manager"}}
+            <div class="project-actions" style="margin-top: 15px;">
+              <button id="update-project-btn" class="btn-sm">Update Project</button>
+            </div>
+            <div id="update-project-form" style="display:none; margin-top: 15px;">
+              <h4>Update Project</h4>
+              <div class="form-group">
+                <label for="update-description">Description</label>
+                <textarea id="update-description">${project.description}</textarea>
+              </div>
+              <div class="form-group">
+                <label for="update-budget">Budget</label>
+                <input type="number" id="update-budget" value="${project.budget}" min="0">
+              </div>
+              <div class="form-group">
+                <label for="update-status">Status</label>
+                <select id="update-status">
+                  <option value="Pending" ${project.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                  <option value="InProgress" ${project.status === 'InProgress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Complete" ${project.status === 'Complete' ? 'selected' : ''}>Complete</option>
+                </select>
+              </div>
+              <button id="save-project-update" class="btn-sm">Save Changes</button>
+              <button id="cancel-project-update" class="btn-sm">Cancel</button>
+            </div>
+            {{/ifCond}}
+          `;
+          
+          {{#ifCond user.role "Field Manager"}}
+          // Add event listener for update button
+          document.getElementById('update-project-btn').addEventListener('click', function() {
+            document.getElementById('update-project-form').style.display = 'block';
+            this.style.display = 'none';
+          });
+          
+          document.getElementById('cancel-project-update').addEventListener('click', function() {
+            document.getElementById('update-project-form').style.display = 'none';
+            document.getElementById('update-project-btn').style.display = 'inline-block';
+          });
+          
+          document.getElementById('save-project-update').addEventListener('click', function() {
+            updateProject(project._id);
+          });
+          
+          // Load project members
+          loadProjectMembers(project._id);
+          {{/ifCond}}
+          
+          projectList.style.display = 'none';
+          projectDetails.style.display = 'block';
+        })
+        .catch(err => {
+          alert(`Error loading project details: ${err.message}`);
+        });
+    }
+    
+    {{#ifCond user.role "Field Manager"}}
+    // Update project
+    function updateProject(projectId) {
+      const data = {
+        description: document.getElementById('update-description').value,
+        budget: document.getElementById('update-budget').value,
+        status: document.getElementById('update-status').value
+      };
+      
+      fetch(`/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+        .then(res => {
+          if (res.ok) {
+            alert('Project updated successfully');
+            viewProject(projectId);
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to update project');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    // Delete project
+    function deleteProject(projectId) {
+      fetch(`/projects/${projectId}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (res.ok) {
+            loadProjects();
+            alert('Project deleted successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to delete project');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    // Load project members
+    function loadProjectMembers(projectId) {
+      const projectMembers = document.getElementById('project-members');
+      projectMembers.innerHTML = '<p>Loading members...</p>';
+      
+      Promise.all([
+        fetch(`/projects/${projectId}`).then(res => res.json()),
+        fetch('/users').then(res => res.json())
+      ])
+        .then(([project, allUsers]) => {
+          // Get member details
+          const memberIds = project.members;
+          const members = allUsers.filter(user => memberIds.includes(user._id));
+          const nonMembers = allUsers.filter(user => 
+            !memberIds.includes(user._id) && 
+            user.role !== 'Owner'
+          );
+          
+          // Create member list
+          if (members.length === 0) {
+            projectMembers.innerHTML = '<p>No members assigned to this project</p>';
+          } else {
+            const membersList = document.createElement('ul');
+            membersList.style.listStyleType = 'none';
+            membersList.style.padding = '0';
+            
+            members.forEach(member => {
+              const li = document.createElement('li');
+              li.style.padding = '8px 0';
+              li.style.borderBottom = '1px solid #eee';
+              li.innerHTML = `
+                <span>${member.firstname} ${member.lastname} (${member.role})</span>
+                ${member.role !== 'Field Manager' ? 
+                  `<button class="btn-sm remove-member" data-id="${member._id}" style="float:right">Remove</button>` :
+                  `<span style="float:right; color:#888">(Required)</span>`
+                }
+              `;
+              membersList.appendChild(li);
+            });
+            
+            projectMembers.innerHTML = '';
+            projectMembers.appendChild(membersList);
+            
+            // Add event listeners for remove buttons
+            document.querySelectorAll('.remove-member').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const memberId = this.getAttribute('data-id');
+                removeMember(projectId, memberId);
+              });
+            });
+          }
+          
+          // Populate select for adding new members
+          const select = document.getElementById('employee-id');
+          select.innerHTML = '<option value="" disabled selected>Select an employee</option>';
+          
+          nonMembers.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user._id;
+            option.textContent = `${user.firstname} ${user.lastname} (${user.role})`;
+            select.appendChild(option);
+          });
+          
+          // Set up add member button
+          document.getElementById('add-member-btn').onclick = function() {
+            const employeeId = document.getElementById('employee-id').value;
+            if (employeeId) {
+              addMember(projectId, employeeId);
+            }
+          };
+        })
+        .catch(err => {
+          projectMembers.innerHTML = `<p>Error loading members: ${err.message}</p>`;
+        });
+    }
+    
+    // Add member to project
+    function addMember(projectId, employeeId) {
+      fetch(`/projects/${projectId}/members/${employeeId}`, {
+        method: 'POST'
+      })
+        .then(res => {
+          if (res.ok) {
+            loadProjectMembers(projectId);
+            alert('Member added to project successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to add member');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    // Remove member from project
+    function removeMember(projectId, memberId) {
+      fetch(`/projects/${projectId}/members/${memberId}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (res.ok) {
+            loadProjectMembers(projectId);
+            alert('Member removed from project successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to remove member');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    }
+    
+    // Create new project
+    const newProjectBtn = document.getElementById('new-project-btn');
+    const projectFormContainer = document.getElementById('project-form-container');
+    const cancelProjectBtn = document.getElementById('cancel-project-btn');
+    const projectForm = document.getElementById('projectForm');
+    
+    newProjectBtn?.addEventListener('click', () => {
+      projectFormContainer.style.display = 'block';
+    });
+    
+    cancelProjectBtn?.addEventListener('click', () => {
+      projectFormContainer.style.display = 'none';
+      projectForm.reset();
+    });
+    
+    projectForm?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        budget: document.getElementById('budget').value
+      };
+      
+      fetch('/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(res => {
+          if (res.ok) {
+            loadProjects();
+            projectFormContainer.style.display = 'none';
+            projectForm.reset();
+            alert('Project created successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to create project');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    });
+    {{/ifCond}}
+    
+    // Handle back button
+    backToProjectsBtn.addEventListener('click', () => {
+      projectDetails.style.display = 'none';
+      projectList.style.display = 'block';
+      loadProjects(); // Refresh project list
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      if (searchTerm.length === 0) {
+        renderProjects(allProjects);
+        return;
+      }
+      
+      const filteredProjects = allProjects.filter(project => 
+        project.title.toLowerCase().includes(searchTerm)
+      );
+      
+      renderProjects(filteredProjects);
+    });
+    
+    // Initial load
+    loadProjects();
+  });
+</script>

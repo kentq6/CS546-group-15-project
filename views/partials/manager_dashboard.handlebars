@@ -1,0 +1,281 @@
+<div class="dashboard-summary">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Field Manager Dashboard</h2>
+    </div>
+    
+    <div class="dashboard-stats" style="display:flex; justify-content:space-between; margin-bottom:20px;">
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>Projects</h4>
+        <p id="project-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>Tasks</h4>
+        <p id="task-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px;">
+        <h4>Team Members</h4>
+        <p id="team-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+    </div>
+    
+    <div class="row" style="display:flex; margin-bottom:20px;">
+      <div class="col" style="flex:1; margin-right:10px;">
+        <h3>Projects I Manage</h3>
+        <div id="my-projects">
+          <p>Loading...</p>
+        </div>
+      </div>
+      <div class="col" style="flex:1;">
+        <h3>Recent Tasks</h3>
+        <div id="recent-tasks">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="recent-reports" style="margin-top:20px;">
+      <h3>Recent Reports</h3>
+      <div id="recent-reports">
+        <p>Loading...</p>
+      </div>
+    </div>
+    
+    <div class="quick-actions" style="margin-top:20px;">
+      <h3>Quick Actions</h3>
+      <div style="display:flex; gap:10px;">
+        <button id="quick-create-project" class="btn">Create Project</button>
+        <button id="quick-create-task" class="btn">Create Task</button>
+        <button id="quick-view-reports" class="btn">View Reports</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const projectCount = document.getElementById('project-count');
+    const taskCount = document.getElementById('task-count');
+    const teamCount = document.getElementById('team-count');
+    const myProjects = document.getElementById('my-projects');
+    const recentTasks = document.getElementById('recent-tasks');
+    const recentReports = document.getElementById('recent-reports');
+    
+    // Quick action buttons
+    const quickCreateProject = document.getElementById('quick-create-project');
+    const quickCreateTask = document.getElementById('quick-create-task');
+    const quickViewReports = document.getElementById('quick-view-reports');
+    
+    // Load dashboard data
+    
+    // Load projects
+    fetch('/projects')
+      .then(res => res.json())
+      .then(projects => {
+        // Update project count
+        projectCount.textContent = projects.length;
+        
+        // Display projects
+        if (projects.length === 0) {
+          myProjects.innerHTML = '<p>No projects found</p>';
+        } else {
+          const projectsList = document.createElement('ul');
+          projectsList.style.listStyleType = 'none';
+          projectsList.style.padding = '0';
+          
+          projects.forEach(project => {
+            const li = document.createElement('li');
+            li.style.padding = '8px 0';
+            li.style.borderBottom = '1px solid #eee';
+            
+            // Status indicator with color
+            const statusColor = project.status === 'Pending' ? '#ffc107' : 
+                               project.status === 'InProgress' ? '#007bff' : 
+                               '#28a745';
+            
+            li.innerHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>${project.title}</span>
+                <span style="color:${statusColor}; font-weight:bold;">${project.status}</span>
+              </div>
+              <div style="font-size:0.8em; color:#6c757d;">
+                Budget: $${project.budget} | Members: ${project.members.length}
+              </div>
+            `;
+            
+            li.addEventListener('click', () => {
+              // Navigate to project details
+              document.querySelector('.sidebar-nav a[data-section="projects"]').click();
+              setTimeout(() => {
+                document.querySelector(`.view-project[data-id="${project._id}"]`).click();
+              }, 100);
+            });
+            
+            li.style.cursor = 'pointer';
+            projectsList.appendChild(li);
+          });
+          
+          myProjects.innerHTML = '';
+          myProjects.appendChild(projectsList);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading projects:', err);
+        myProjects.innerHTML = '<p>Error loading projects</p>';
+      });
+    
+    // Load team members
+    Promise.all([
+      fetch('/projects').then(res => res.json()),
+      fetch('/users').then(res => res.json())
+    ])
+      .then(([projects, users]) => {
+        // Get unique members across all projects
+        const memberIds = new Set();
+        projects.forEach(project => {
+          project.members.forEach(memberId => {
+            memberIds.add(memberId);
+          });
+        });
+        
+        teamCount.textContent = memberIds.size;
+        
+        // Count tasks across all projects
+        let tasksPromises = [];
+        projects.forEach(project => {
+          tasksPromises.push(
+            fetch(`/projects/${project._id}/tasks`).then(res => res.json())
+          );
+        });
+        
+        // Load tasks for display
+        Promise.all(tasksPromises)
+          .then(allProjectTasks => {
+            // Flatten all tasks into a single array
+            const allTasks = allProjectTasks.flat();
+            taskCount.textContent = allTasks.length;
+            
+            // Display recent tasks
+            if (allTasks.length === 0) {
+              recentTasks.innerHTML = '<p>No tasks found</p>';
+            } else {
+              const tasksList = document.createElement('ul');
+              tasksList.style.listStyleType = 'none';
+              tasksList.style.padding = '0';
+              
+              // Sort tasks by status (pending first)
+              allTasks.sort((a, b) => {
+                const order = { 'Pending': 0, 'InProgress': 1, 'Complete': 2 };
+                return order[a.status] - order[b.status];
+              });
+              
+              // Take first 5 tasks
+              allTasks.slice(0, 5).forEach(task => {
+                const assignedUser = users.find(user => user._id === task.assignedTo);
+                const assigneeName = assignedUser ? 
+                  `${assignedUser.firstname} ${assignedUser.lastname}` : 
+                  'Unassigned';
+                
+                const li = document.createElement('li');
+                li.style.padding = '8px 0';
+                li.style.borderBottom = '1px solid #eee';
+                
+                // Status indicator
+                const statusColor = task.status === 'Pending' ? '#ffc107' : 
+                                   task.status === 'InProgress' ? '#007bff' : 
+                                   '#28a745';
+                
+                li.innerHTML = `
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>${task.title}</span>
+                    <span style="color:${statusColor}; font-weight:bold;">${task.status}</span>
+                  </div>
+                  <div style="font-size:0.8em; color:#6c757d;">
+                    Assigned to: ${assigneeName} | Cost: $${task.cost}
+                  </div>
+                `;
+                
+                tasksList.appendChild(li);
+              });
+              
+              recentTasks.innerHTML = '';
+              recentTasks.appendChild(tasksList);
+            }
+          });
+        
+        // Load reports from all projects
+        let reportsPromises = [];
+        projects.forEach(project => {
+          reportsPromises.push(
+            fetch(`/projects/${project._id}/reports`).then(res => res.json())
+          );
+        });
+        
+        Promise.all(reportsPromises)
+          .then(allProjectReports => {
+            const allReports = allProjectReports.flat();
+            
+            // Display recent reports
+            if (allReports.length === 0) {
+              recentReports.innerHTML = '<p>No reports found</p>';
+            } else {
+              const reportsList = document.createElement('ul');
+              reportsList.style.listStyleType = 'none';
+              reportsList.style.padding = '0';
+              
+              // Sort reports by issues count (most issues first)
+              allReports.sort((a, b) => b.issues.length - a.issues.length);
+              
+              // Take first 5 reports
+              allReports.slice(0, 5).forEach(report => {
+                const li = document.createElement('li');
+                li.style.padding = '8px 0';
+                li.style.borderBottom = '1px solid #eee';
+                
+                const issueCount = report.issues.length;
+                const issueLabel = issueCount === 1 ? 'issue' : 'issues';
+                
+                li.innerHTML = `
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>${report.title}</span>
+                    <span style="color:${issueCount > 0 ? '#dc3545' : '#28a745'}; font-weight:bold;">
+                      ${issueCount} ${issueLabel}
+                    </span>
+                  </div>
+                  <div style="font-size:0.8em; color:#6c757d;">
+                    ${report.description.substring(0, 50)}${report.description.length > 50 ? '...' : ''}
+                  </div>
+                `;
+                
+                reportsList.appendChild(li);
+              });
+              
+              recentReports.innerHTML = '';
+              recentReports.appendChild(reportsList);
+            }
+          });
+      })
+      .catch(err => {
+        console.error('Error loading team data:', err);
+      });
+    
+    // Quick action event handlers
+    quickCreateProject.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="projects"]').click();
+      setTimeout(() => {
+        document.getElementById('new-project-btn').click();
+      }, 100);
+    });
+    
+    quickCreateTask.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="tasks"]').click();
+      setTimeout(() => {
+        document.getElementById('new-task-btn').click();
+      }, 100);
+    });
+    
+    quickViewReports.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="reports"]').click();
+    });
+  });
+</script>

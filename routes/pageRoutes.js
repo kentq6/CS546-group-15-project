@@ -32,6 +32,13 @@ router.route('/loggedInLanding')
         , pageHandlers.renderLoggedInLandingPage
         )
 
+router.get('/dashboard', authenticate, (req, res) => {
+  res.render('dashboard', { 
+    user: req.user,
+    title: 'Dashboard'
+  });
+});
+
 /* clears authentication cookie and redirects to login page */
 router.route('/logout')
     .post(logout)

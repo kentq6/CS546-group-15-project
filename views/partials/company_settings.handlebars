@@ -1,0 +1,125 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>Company Settings</h2>
+  </div>
+  
+  <div id="company-info">
+    <p>Loading company information...</p>
+  </div>
+  
+  <div id="company-update-form" style="margin-top:20px;">
+    <h3>Update Company Information</h3>
+    <form id="companyUpdateForm">
+      <div class="form-group">
+        <label for="company-location">Location</label>
+        <input type="text" id="company-location" name="location" required>
+      </div>
+      <div class="form-group">
+        <label for="company-industry">Industry</label>
+        <input type="text" id="company-industry" name="industry" required>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn">Update Company</button>
+      </div>
+    </form>
+  </div>
+  
+  <div class="danger-zone" style="margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
+    <h3 style="color:#dc3545;">Danger Zone</h3>
+    <p>This action is irreversible. It will permanently delete the company, all projects, and all user accounts.</p>
+    <button id="delete-company-btn" class="btn" style="background-color:#dc3545;">Delete Company</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const companyInfo = document.getElementById('company-info');
+    const companyUpdateForm = document.getElementById('companyUpdateForm');
+    const companyLocationInput = document.getElementById('company-location');
+    const companyIndustryInput = document.getElementById('company-industry');
+    const deleteCompanyBtn = document.getElementById('delete-company-btn');
+    
+    // Load company information
+    function loadCompanyInfo() {
+      fetch('/company')
+        .then(res => res.json())
+        .then(company => {
+          companyInfo.innerHTML = `
+            <div class="company-details">
+              <p><strong>Company Name:</strong> ${company.title}</p>
+              <p><strong>Location:</strong> ${company.location}</p>
+              <p><strong>Industry:</strong> ${company.industry}</p>
+              <p><strong>Company ID:</strong> ${company._id}</p>
+            </div>
+          `;
+          
+          // Populate update form
+          companyLocationInput.value = company.location;
+          companyIndustryInput.value = company.industry;
+        })
+        .catch(err => {
+          companyInfo.innerHTML = `<p>Error loading company information: ${err.message}</p>`;
+        });
+    }
+    
+    // Handle company update form submission
+    companyUpdateForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        location: companyLocationInput.value,
+        industry: companyIndustryInput.value
+      };
+      
+      fetch('/company', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+        .then(res => {
+          if (res.ok) {
+            loadCompanyInfo();
+            alert('Company information updated successfully');
+          } else {
+            return res.json().then(data => {
+              throw new Error(data.message || 'Failed to update company information');
+            });
+          }
+        })
+        .catch(err => {
+          alert(`Error: ${err.message}`);
+        });
+    });
+    
+    // Handle company deletion
+    deleteCompanyBtn.addEventListener('click', function() {
+      const confirmation = prompt('This action cannot be undone. All company data, projects, and user accounts will be permanently deleted. Type "DELETE" to confirm:');
+      
+      if (confirmation === 'DELETE') {
+        fetch('/company', {
+          method: 'DELETE'
+        })
+          .then(res => {
+            if (res.ok) {
+              alert('Company deleted successfully. You will be redirected to the login page.');
+              window.location.href = '/login';
+            } else {
+              return res.json().then(data => {
+                throw new Error(data.message || 'Failed to delete company');
+              });
+            }
+          })
+          .catch(err => {
+            alert(`Error: ${err.message}`);
+          });
+      } else if (confirmation !== null) {
+        alert('Incorrect confirmation. Company not deleted.');
+      }
+    });
+    
+    // Initial load
+    loadCompanyInfo();
+  });
+</script>

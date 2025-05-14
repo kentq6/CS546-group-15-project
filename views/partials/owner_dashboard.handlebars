@@ -1,0 +1,155 @@
+<div class="dashboard-summary">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Owner Dashboard</h2>
+    </div>
+    
+    <div class="dashboard-stats" style="display:flex; justify-content:space-between; margin-bottom:20px;">
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>Employees</h4>
+        <p id="employee-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px; margin-right:10px;">
+        <h4>Projects</h4>
+        <p id="project-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+      <div class="stat-card" style="flex:1; background-color:#f8f9fa; padding:15px; border-radius:5px;">
+        <h4>Active Projects</h4>
+        <p id="active-project-count" style="font-size:24px; font-weight:bold;">0</p>
+      </div>
+    </div>
+    
+    <div class="row" style="display:flex; margin-bottom:20px;">
+      <div class="col" style="flex:1; margin-right:10px;">
+        <h3>Recent Employees</h3>
+        <div id="recent-employees">
+          <p>Loading...</p>
+        </div>
+      </div>
+      <div class="col" style="flex:1;">
+        <h3>Recent Projects</h3>
+        <div id="recent-projects">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="quick-actions" style="margin-top:20px;">
+      <h3>Quick Actions</h3>
+      <div style="display:flex; gap:10px;">
+        <button id="quick-add-employee" class="btn">Add Employee</button>
+        <button id="quick-view-projects" class="btn">View All Projects</button>
+        <button id="quick-company-settings" class="btn">Company Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const employeeCount = document.getElementById('employee-count');
+    const projectCount = document.getElementById('project-count');
+    const activeProjectCount = document.getElementById('active-project-count');
+    const recentEmployees = document.getElementById('recent-employees');
+    const recentProjects = document.getElementById('recent-projects');
+    
+    // Quick action buttons
+    const quickAddEmployee = document.getElementById('quick-add-employee');
+    const quickViewProjects = document.getElementById('quick-view-projects');
+    const quickCompanySettings = document.getElementById('quick-company-settings');
+    
+    // Load dashboard data
+    function loadDashboardData() {
+      // Load employee stats
+      fetch('/users')
+        .then(res => res.json())
+        .then(employees => {
+          employeeCount.textContent = employees.length;
+          
+          // Show recent employees
+          const recentList = employees.slice(0, 5);
+          if (recentList.length === 0) {
+            recentEmployees.innerHTML = '<p>No employees found</p>';
+          } else {
+            const ul = document.createElement('ul');
+            ul.style.listStyleType = 'none';
+            ul.style.padding = '0';
+            
+            recentList.forEach(employee => {
+              const li = document.createElement('li');
+              li.style.padding = '8px 0';
+              li.style.borderBottom = '1px solid #eee';
+              li.innerHTML = `${employee.firstname} ${employee.lastname} - ${employee.role}`;
+              ul.appendChild(li);
+            });
+            
+            recentEmployees.innerHTML = '';
+            recentEmployees.appendChild(ul);
+          }
+        })
+        .catch(err => {
+          console.error('Error loading employees:', err);
+          recentEmployees.innerHTML = '<p>Error loading employees</p>';
+        });
+      
+      // Load project stats
+      fetch('/projects')
+        .then(res => res.json())
+        .then(projects => {
+          projectCount.textContent = projects.length;
+          const activeProjects = projects.filter(p => p.status === 'InProgress');
+          activeProjectCount.textContent = activeProjects.length;
+          
+          // Show recent projects
+          const recentList = projects.slice(0, 5);
+          if (recentList.length === 0) {
+            recentProjects.innerHTML = '<p>No projects found</p>';
+          } else {
+            const ul = document.createElement('ul');
+            ul.style.listStyleType = 'none';
+            ul.style.padding = '0';
+            
+            recentList.forEach(project => {
+              const li = document.createElement('li');
+              li.style.padding = '8px 0';
+              li.style.borderBottom = '1px solid #eee';
+              li.innerHTML = `
+                ${project.title} - 
+                <span style="color:${project.status === 'Pending' ? '#ffc107' : project.status === 'InProgress' ? '#007bff' : '#28a745'}">
+                  ${project.status}
+                </span>
+              `;
+              ul.appendChild(li);
+            });
+            
+            recentProjects.innerHTML = '';
+            recentProjects.appendChild(ul);
+          }
+        })
+        .catch(err => {
+          console.error('Error loading projects:', err);
+          recentProjects.innerHTML = '<p>Error loading projects</p>';
+        });
+    }
+    
+    // Quick action event handlers
+    quickAddEmployee.addEventListener('click', () => {
+      // Simulate clicking employees tab and then add employee button
+      document.querySelector('.sidebar-nav a[data-section="employees"]').click();
+      setTimeout(() => {
+        document.getElementById('new-employee-btn').click();
+      }, 100);
+    });
+    
+    quickViewProjects.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="projects"]').click();
+    });
+    
+    quickCompanySettings.addEventListener('click', () => {
+      document.querySelector('.sidebar-nav a[data-section="company"]').click();
+    });
+    
+    // Initial load
+    loadDashboardData();
+  });
+</script>
